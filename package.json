@@ -24,7 +24,8 @@
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "sequelize": "^6.37.7"
+    "sequelize": "^6.37.7",
+    "serve-favicon": "^2.5.0"
   },
   "devDependencies": {
     "mysql2": "^3.14.0",
