@@ -15,8 +15,9 @@ app.get("/", (req, res) => {
 app.use('/api', routes);
 
 const PORT = process.env.PORT || 3000;
+const APP_URL = process.env.APP_URL || 'http://localhost';
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo en ${APP_URL}:${PORT}`);
 });
 
 //ESTE ARCHIVO NO SE TOCA

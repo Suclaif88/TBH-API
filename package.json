@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Suclaif88/TBH-API#readme",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
