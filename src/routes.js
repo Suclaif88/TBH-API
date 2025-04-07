@@ -9,9 +9,13 @@ const rolesRoutes = require('./routes/roles.routes');
 const usuariosRoutes = require('./routes/usuario.routes.js');
 
 
+const categoriaProductosRoutes = require('./routes/categoriaProductos.routes');
+
+
 router.use('/auth', authRoutes);
 router.use('/insumos', insumoRoutes);
 router.use('/categoria-insumo', categoriaInsumoRoutes);
+router.use('/categoria-producto', categoriaProductosRoutes);
 router.use('/ventas', ventasRoutes);
 router.use('/roles', rolesRoutes);
 router.use('/usuarios', usuariosRoutes);
