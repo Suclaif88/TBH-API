@@ -1,20 +1,21 @@
-const { Categoria_Productos } = require('../models'); // Ajusta el path según la ubicación de tus modelos
+const { CategoriaProductos } = require('../models'); // Ajusta el path según la ubicación de tus modelos
 
 // Obtener todas las categorías
 exports.listarCategorias = async (req, res) => {
   try {
-    const categorias = await Categoria_Productos.findAll();
-    res.json(categorias);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener las categorías' });
+    const categorias = await CategoriaProductos.findAll();
+    res.json({ status: 'success', data: categorias });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
 
 // Obtener una categoría por ID
 exports.obtenerCategoriaById = async (req, res) => {
   try {
     const { id } = req.params;
-    const categoria = await Categoria_Productos.findByPk(id);
+    const categoria = await CategoriaProductos.findByPk(id);
     if (!categoria) {
       return res.status(404).json({ error: 'Categoría no encontrada' });
     }
@@ -27,11 +28,10 @@ exports.obtenerCategoriaById = async (req, res) => {
 // Crear una nueva categoría
 exports.crearCategoria = async (req, res) => {
   try {
-    const { Nombre, Descripcion } = req.body;
-    const nuevaCategoria = await Categoria_Productos.create({ Nombre, Descripcion });
-    res.status(201).json(nuevaCategoria);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al crear la categoría' });
+    const nuevaCategoria = await CategoriaProductos.create(req.body);
+    res.json({ status: 'success', data: nuevaCategoria });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
@@ -40,7 +40,7 @@ exports.actualizarCategoria = async (req, res) => {
   try {
     const { id } = req.params;
     const { Nombre, Descripcion } = req.body;
-    const categoria = await Categoria_Productos.findByPk(id);
+    const categoria = await CategoriaProductos.findByPk(id);
     if (!categoria) {
       return res.status(404).json({ error: 'Categoría no encontrada' });
     }
@@ -57,7 +57,7 @@ exports.actualizarCategoria = async (req, res) => {
 exports.eliminarCategoria = async (req, res) => {
   try {
     const { id } = req.params;
-    const categoria = await Categoria_Productos.findByPk(id);
+    const categoria = await CategoriaProductos.findByPk(id);
     if (!categoria) {
       return res.status(404).json({ error: 'Categoría no encontrada' });
     }
