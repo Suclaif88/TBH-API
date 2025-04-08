@@ -1,14 +1,8 @@
 const { Router } = require('express');
 const {
-    listarCategorias,
-    obtenerCategoriaById,
-    crearCategoria,
-    actualizarCategoria,
-    eliminarCategoria,
     listarProductos,
     obtenerProductoById,
     crearProducto,
-    actualizarProductos,
     eliminarProducto,
     actualizarProducto
 } = require('../controllers/productos.controller');

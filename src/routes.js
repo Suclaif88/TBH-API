@@ -16,8 +16,8 @@ const ProductosRoutes = require('./routes/productos.routes.js');
 router.use('/auth', authRoutes);
 router.use('/insumos', insumoRoutes);
 router.use('/productos', ProductosRoutes)
-router.use('/categoria-insumo', categoriaInsumoRoutes);
 router.use('/categoria-producto', categoriaProductosRoutes);
+router.use('/categoria-insumo', categoriaInsumoRoutes);
 router.use('/ventas', ventasRoutes);
 router.use('/roles', rolesRoutes);
 router.use('/usuarios', usuariosRoutes);

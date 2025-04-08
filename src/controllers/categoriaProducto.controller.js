@@ -1,6 +1,5 @@
-const { CategoriaProductos } = require('../models'); // Ajusta el path según la ubicación de tus modelos
+const { CategoriaProductos } = require('../models');
 
-// Obtener todas las categorías
 exports.listarCategorias = async (req, res) => {
   try {
     const categorias = await CategoriaProductos.findAll();
@@ -10,8 +9,6 @@ exports.listarCategorias = async (req, res) => {
   }
 };
 
-
-// Obtener una categoría por ID
 exports.obtenerCategoriaById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -25,7 +22,6 @@ exports.obtenerCategoriaById = async (req, res) => {
   }
 };
 
-// Crear una nueva categoría
 exports.crearCategoria = async (req, res) => {
   try {
     const nuevaCategoria = await CategoriaProductos.create(req.body);
@@ -35,7 +31,6 @@ exports.crearCategoria = async (req, res) => {
   }
 };
 
-// Actualizar una categoría existente
 exports.actualizarCategoria = async (req, res) => {
   try {
     const { id } = req.params;
@@ -53,7 +48,6 @@ exports.actualizarCategoria = async (req, res) => {
   }
 };
 
-// Eliminar una categoría
 exports.eliminarCategoria = async (req, res) => {
   try {
     const { id } = req.params;
