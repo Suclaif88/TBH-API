@@ -11,6 +11,7 @@ const usuariosRoutes = require('./routes/usuario.routes.js');
 
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
 const ProductosRoutes = require('./routes/productos.routes.js');
+const ImagenesRoutes = require('./routes/imagenes.routes.js')
 
 
 router.use('/auth', authRoutes);
@@ -21,6 +22,8 @@ router.use('/categoria-insumo', categoriaInsumoRoutes);
 router.use('/ventas', ventasRoutes);
 router.use('/roles', rolesRoutes);
 router.use('/usuarios', usuariosRoutes);
+
+router.use('/upload', ImagenesRoutes);
 
 
 module.exports = router;
