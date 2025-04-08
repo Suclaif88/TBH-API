@@ -23,6 +23,25 @@ exports.listarRoles = async (_req, res) => {
   }
 };
 
+exports.listarRolesId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const rol = await Roles.findOne({
+      where: { id }
+    });
+
+    if (!rol) {
+      return res.status(404).json({ status: 'error', message: 'Rol no encontrado' });
+    }
+
+    res.json({ status: 'success', data: rol });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+
 exports.actualizarRoles = async (req, res) => {
   try {
     const { id } = req.params;
