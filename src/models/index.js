@@ -115,4 +115,22 @@ module.exports = {
   Ventas,
   VentasCambio,
 };
+
+
+// Relaciones de Roles y Permisos
+
+Roles.belongsToMany(Permisos, {
+  through: RolPermiso,
+  foreignKey: 'rol_id',
+  otherKey: 'permiso_id'
+});
+
+Permisos.belongsToMany(Roles, {
+  through: RolPermiso,
+  foreignKey: 'permiso_id',
+  otherKey: 'rol_id'
+});
+
+
+
 //Si llegaste aqui es porque tienes muy mala suerte y algun modelo no se cargo correctamente que mal....
