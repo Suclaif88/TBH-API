@@ -1,4 +1,3 @@
-// src/controllers/imagenesController.js
 const cloudinary = require("../config/cloudinaryConfig");
 const fs = require("fs");
 const path = require("path");
@@ -14,20 +13,16 @@ const subirMultiplesImagenes = async (req, res) => {
     const resultados = [];
 
     for (const file of req.files) {
-      // Crear archivo temporal
       const tempFilePath = path.join(__dirname, `../../temp-${Date.now()}.webp`);
       fs.writeFileSync(tempFilePath, file.buffer);
 
-      // Subir a Cloudinary
       const resultado = await cloudinary.uploader.upload(tempFilePath, {
         folder: "productos",
         format: "webp"
       });
 
-      // Eliminar archivo temporal
       fs.unlinkSync(tempFilePath);
 
-      // Guardar en base de datos
       const nuevaImagen = await Imagenes.create({
         URL: resultado.secure_url
       });
@@ -39,8 +34,7 @@ const subirMultiplesImagenes = async (req, res) => {
     }
 
     res.json({
-      exito: true,
-      mensaje: "Imágenes subidas correctamente",
+      status: 'success',
       imagenes: resultados
     });
 
