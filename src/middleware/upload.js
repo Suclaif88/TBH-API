@@ -1,7 +1,6 @@
-// src/middleware/upload.js
 const multer = require("multer");
 
-const storage = multer.memoryStorage(); // Guarda los archivos en memoria como buffer
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 module.exports = upload;
