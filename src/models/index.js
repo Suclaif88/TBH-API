@@ -79,57 +79,51 @@ sequelize.sync()
     console.error('Error al sincronizar la base de datos:', error);
   });
 
-module.exports = {
-  Usuarios,
-  Roles,
-  Permisos,
-  RolPermiso,
-  Agendamientos,
-  AgendamientoServicios,
-  CategoriaInsumos,
-  CategoriaProductos,
-  Clientes,
-  Compras,
-  DetalleCompraTallas,
-  DetalleInsumos,
-  DetalleProductos,
-  DetalleVentaCambioTallas,
-  DetalleVentaProductos,
-  DetalleVentaTallas,
-  DetalleVentaTamano,
-  Devoluciones,
-  Empleados,
-  Imagenes,
-  Insumos,
-  NovedadesHorarios,
-  ProductoImagen,
-  ProductoTallas,
-  ProductoTamano,
-  ProductoTamanoInsumos,
-  Productos,
-  Proveedores,
-  ServicioImagen,
-  Servicios,
-  Tallas,
-  Tamano,
-  Ventas,
-  VentasCambio,
-};
+  const models = {
+    Usuarios,
+    Roles,
+    Permisos,
+    RolPermiso,
+    Agendamientos,
+    AgendamientoServicios,
+    CategoriaInsumos,
+    CategoriaProductos,
+    Clientes,
+    Compras,
+    DetalleCompraTallas,
+    DetalleInsumos,
+    DetalleProductos,
+    DetalleVentaCambioTallas,
+    DetalleVentaProductos,
+    DetalleVentaTallas,
+    DetalleVentaTamano,
+    Devoluciones,
+    Empleados,
+    Imagenes,
+    Insumos,
+    NovedadesHorarios,
+    ProductoImagen,
+    ProductoTallas,
+    ProductoTamano,
+    ProductoTamanoInsumos,
+    Productos,
+    Proveedores,
+    ServicioImagen,
+    Servicios,
+    Tallas,
+    Tamano,
+    Ventas,
+    VentasCambio,
+  };
+  
 
+  Object.values(models).forEach(model => {
+    if (model.associate) {
+      model.associate(models);
+    }
+  });
 
-// Relaciones de Roles y Permisos
-
-Roles.belongsToMany(Permisos, {
-  through: RolPermiso,
-  foreignKey: 'rol_id',
-  otherKey: 'permiso_id'
-});
-
-Permisos.belongsToMany(Roles, {
-  through: RolPermiso,
-  foreignKey: 'permiso_id',
-  otherKey: 'rol_id'
-});
+  module.exports = models;
 
 
 
