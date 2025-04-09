@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('permisos', {
+  const Permisos = sequelize.define('permisos', {
     id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
@@ -35,4 +35,14 @@ module.exports = function(sequelize, DataTypes) {
       },
     ]
   });
+
+  Permisos.associate = models => {
+    Permisos.belongsToMany(models.Roles, {
+      through: models.RolPermiso,
+      foreignKey: 'permiso_id',
+      otherKey: 'rol_id'
+    });
+  };
+  
+  return Permisos;
 };

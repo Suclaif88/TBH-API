@@ -79,40 +79,52 @@ sequelize.sync()
     console.error('Error al sincronizar la base de datos:', error);
   });
 
-module.exports = {
-  Usuarios,
-  Roles,
-  Permisos,
-  RolPermiso,
-  Agendamientos,
-  AgendamientoServicios,
-  CategoriaInsumos,
-  CategoriaProductos,
-  Clientes,
-  Compras,
-  DetalleCompraTallas,
-  DetalleInsumos,
-  DetalleProductos,
-  DetalleVentaCambioTallas,
-  DetalleVentaProductos,
-  DetalleVentaTallas,
-  DetalleVentaTamano,
-  Devoluciones,
-  Empleados,
-  Imagenes,
-  Insumos,
-  NovedadesHorarios,
-  ProductoImagen,
-  ProductoTallas,
-  ProductoTamano,
-  ProductoTamanoInsumos,
-  Productos,
-  Proveedores,
-  ServicioImagen,
-  Servicios,
-  Tallas,
-  Tamano,
-  Ventas,
-  VentasCambio,
-};
+  const models = {
+    Usuarios,
+    Roles,
+    Permisos,
+    RolPermiso,
+    Agendamientos,
+    AgendamientoServicios,
+    CategoriaInsumos,
+    CategoriaProductos,
+    Clientes,
+    Compras,
+    DetalleCompraTallas,
+    DetalleInsumos,
+    DetalleProductos,
+    DetalleVentaCambioTallas,
+    DetalleVentaProductos,
+    DetalleVentaTallas,
+    DetalleVentaTamano,
+    Devoluciones,
+    Empleados,
+    Imagenes,
+    Insumos,
+    NovedadesHorarios,
+    ProductoImagen,
+    ProductoTallas,
+    ProductoTamano,
+    ProductoTamanoInsumos,
+    Productos,
+    Proveedores,
+    ServicioImagen,
+    Servicios,
+    Tallas,
+    Tamano,
+    Ventas,
+    VentasCambio,
+  };
+  
+
+  Object.values(models).forEach(model => {
+    if (model.associate) {
+      model.associate(models);
+    }
+  });
+
+  module.exports = models;
+
+
+
 //Si llegaste aqui es porque tienes muy mala suerte y algun modelo no se cargo correctamente que mal....

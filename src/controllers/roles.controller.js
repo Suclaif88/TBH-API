@@ -1,9 +1,16 @@
-const { Roles } = require('../models');
+const { Roles, Permisos } = require('../models');
 
 
 exports.crearRoles = async (req, res) => {
   try {
-    const nuevoRol = await Roles.create(req.body);
+    const { nombre, descripcion, permisosIds } = req.body;
+
+    const nuevoRol = await Roles.create({ nombre, descripcion });
+
+    if (permisosIds && permisosIds.length) {
+      await nuevoRol.setPermisos(permisosIds); // <- relación
+    }
+
     return res.status(201).json({ status: 'success', data: nuevoRol });
   } catch (err) {
     const errorMsg = err.name === 'SequelizeUniqueConstraintError'
@@ -13,10 +20,14 @@ exports.crearRoles = async (req, res) => {
   }
 };
 
-
 exports.listarRoles = async (_req, res) => {
   try {
-    const roles = await Roles.findAll();
+    const roles = await Roles.findAll({
+      include: {
+        model: Permisos,
+        through: { attributes: [] }
+      }
+    });
     return res.json({ status: 'success', data: roles });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
@@ -28,7 +39,11 @@ exports.listarRolesId = async (req, res) => {
     const { id } = req.params;
 
     const rol = await Roles.findOne({
-      where: { id }
+      where: { id },
+      include: {
+        model: Permisos,
+        through: { attributes: [] }
+      }
     });
 
     if (!rol) {
@@ -40,15 +55,20 @@ exports.listarRolesId = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
-
-
 exports.actualizarRoles = async (req, res) => {
   try {
     const { id } = req.params;
-    const [actualizados] = await Roles.update(req.body, { where: { id } });
+    const { nombre, descripcion, permisosIds } = req.body;
 
-    if (!actualizados) {
+    const rol = await Roles.findByPk(id);
+    if (!rol) {
       return res.status(404).json({ status: 'error', message: 'Rol no encontrado' });
+    }
+
+    await rol.update({ nombre, descripcion });
+
+    if (permisosIds) {
+      await rol.setPermisos(permisosIds); // actualiza permisos relacionados
     }
 
     return res.json({ status: 'success', message: 'Rol actualizado' });
@@ -56,7 +76,6 @@ exports.actualizarRoles = async (req, res) => {
     return res.status(500).json({ status: 'error', message: err.message });
   }
 };
-
 
 exports.eliminarRoles = async (req, res) => {
   try {
