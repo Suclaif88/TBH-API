@@ -44,4 +44,49 @@ const subirMultiplesImagenes = async (req, res) => {
   }
 };
 
-module.exports = { subirMultiplesImagenes };
+const eliminarMultiplesImagenes = async (req, res) => {
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ status: 'error', message: 'Debes enviar un array de IDs' });
+  }
+
+  if (ids.length > 5) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Solo puedes eliminar hasta 5 imágenes por solicitud'
+    });
+  }
+
+  try {
+    const resultados = [];
+
+    for (const id of ids) {
+      const imagen = await Imagenes.findByPk(id);
+
+      if (imagen) {
+        const urlParts = imagen.URL.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const publicId = `productos/${fileName.split('.')[0]}`;
+
+        await cloudinary.uploader.destroy(publicId);
+        await imagen.destroy();
+
+        resultados.push({ id, status: 'eliminado' });
+      } else {
+        resultados.push({ id, status: 'no encontrada' });
+      }
+    }
+
+    res.json({
+      status: 'success',
+      resultados
+    });
+
+  } catch (error) {
+    console.error('Error al eliminar múltiples imágenes:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+module.exports = { subirMultiplesImagenes, eliminarMultiplesImagenes };
