@@ -23,7 +23,7 @@ router.use('/ventas', ventasRoutes);
 router.use('/roles', rolesRoutes);
 router.use('/usuarios', usuariosRoutes);
 
-router.use('/upload', ImagenesRoutes);
+router.use('/imagenes', ImagenesRoutes);
 
 
 module.exports = router;
