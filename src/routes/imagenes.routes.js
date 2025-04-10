@@ -5,6 +5,8 @@ const { subirMultiplesImagenes } = require("../controllers/imagenes.controller")
 const verificarToken = require('../middleware/authMiddleware');
 
 router.use(verificarToken);
-router.post("/img", upload.array("imagenes", 5), subirMultiplesImagenes);
+router.post("/upload", upload.array("imagenes", 5), subirMultiplesImagenes);
+// router.post("/update")
+// router.post("/delete")
 
 module.exports = router;
