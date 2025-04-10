@@ -7,7 +7,7 @@ const { Imagenes } = require('../models');
 const subirMultiplesImagenes = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ exito: false, error: "No se enviaron imágenes" });
+      return res.status(400).json({ status: 'error', message: "No se enviaron imágenes" });
     }
 
     const resultados = [];
@@ -40,7 +40,7 @@ const subirMultiplesImagenes = async (req, res) => {
 
   } catch (error) {
     console.error("Error al subir imágenes:", error);
-    res.status(500).json({ exito: false, error: error.message });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
