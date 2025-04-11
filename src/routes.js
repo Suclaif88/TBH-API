@@ -7,7 +7,8 @@ const categoriaInsumoRoutes = require('./routes/categoriaInsumo.routes');
 const ventasRoutes = require('./routes/ventas.routes');
 const rolesRoutes = require('./routes/roles.routes');
 const usuariosRoutes = require('./routes/usuario.routes.js');
-
+const EmpleadosRoutes = require('./routes/empleados.routes.js')
+const DevolucionesRoutes = require('./routes/devoluciones.routes.js')
 
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
 const ProductosRoutes = require('./routes/productos.routes.js');
@@ -22,6 +23,8 @@ router.use('/categoria-insumo', categoriaInsumoRoutes);
 router.use('/ventas', ventasRoutes);
 router.use('/roles', rolesRoutes);
 router.use('/usuarios', usuariosRoutes);
+router.use('empleados',EmpleadosRoutes);
+router.use('devoluciones',DevolucionesRoutes);
 
 router.use('/upload', ImagenesRoutes);
 
