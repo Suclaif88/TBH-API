@@ -1,60 +1,60 @@
-const db = require('../models');
-const Devoluciones = db.Devoluciones;
+const { Devoluciones } = require('../models');
 
-exports.getAll = async (req, res) => {
-  try {
-    const devoluciones = await Devoluciones.findAll();
-    res.json(devoluciones);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener las devoluciones', details: error.message });
-  }
-};
-
-exports.getById = async (req, res) => {
-  try {
-    const devolucion = await Devoluciones.findByPk(req.params.id);
-    if (!devolucion) {
-      return res.status(404).json({ error: 'Devolución no encontrada' });
-    }
-    res.json(devolucion);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener la devolución', details: error.message });
-  }
-};
-
-exports.create = async (req, res) => {
+exports.crearDevolucion = async (req, res) => {
   try {
     const nuevaDevolucion = await Devoluciones.create(req.body);
-    res.status(201).json(nuevaDevolucion);
-  } catch (error) {
-    res.status(400).json({ error: 'Error al crear la devolución', details: error.message });
+    res.json({ status: 'success', data: nuevaDevolucion });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
-exports.update = async (req, res) => {
+exports.listarDevoluciones = async (req, res) => {
   try {
-    const [updated] = await Devoluciones.update(req.body, {
-      where: { Id_Devoluciones: req.params.id }
-    });
-    if (updated === 0) {
-      return res.status(404).json({ error: 'Devolución no encontrada o sin cambios' });
-    }
-    res.json({ message: 'Devolución actualizada correctamente' });
-  } catch (error) {
-    res.status(400).json({ error: 'Error al actualizar la devolución', details: error.message });
+    const devoluciones = await Devoluciones.findAll();
+    res.json({ status: 'success', data: devoluciones });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
-exports.delete = async (req, res) => {
+exports.obtenerDevolucionPorId = async (req, res) => {
   try {
-    const deleted = await Devoluciones.destroy({
-      where: { Id_Devoluciones: req.params.id }
-    });
-    if (deleted === 0) {
-      return res.status(404).json({ error: 'Devolución no encontrada' });
+    const { id } = req.params;
+    const devolucion = await Devoluciones.findByPk(id);
+    if (!devolucion) {
+      return res.status(404).json({ status: 'error', message: 'Devolución no encontrada' });
     }
-    res.json({ message: 'Devolución eliminada correctamente' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar la devolución', details: error.message });
+    res.json({ status: 'success', data: devolucion });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+exports.actualizarDevolucion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const devolucion = await Devoluciones.findOne({ where: { Id_Devoluciones: id } });
+    if (!devolucion) {
+      return res.status(404).json({ status: 'error', message: 'Devolución no encontrada' });
+    }
+    await Devoluciones.update(req.body, { where: { Id_Devoluciones: id } });
+    res.json({ status: 'success', message: 'Devolución actualizada' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+exports.eliminarDevolucion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const devolucion = await Devoluciones.findOne({ where: { Id_Devoluciones: id } });
+    if (!devolucion) {
+      return res.status(404).json({ status: 'error', message: 'Devolución no encontrada' });
+    }
+    await Devoluciones.destroy({ where: { Id_Devoluciones: id } });
+    res.json({ status: 'success', message: 'Devolución eliminada' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };

@@ -1,11 +1,21 @@
-const express = require('express');
-const router = express.Router();
-const empleadosController = require('../controllers/empleadosController');
+const { Router } = require('express');
+const {
+    crearEmpleado,
+    listarEmpleados, 
+    obtenerEmpleadoPorDocumento,
+    actualizarEmpleado,
+    eliminarEmpleado,
+} = require('../controllers/empleados.controller.js');
 
-router.get('/', empleadosController.getAll);
-router.get('/:documento', empleadosController.getById);
-router.post('/', empleadosController.create);
-router.put('/:documento', empleadosController.update);
-router.delete('/:documento', empleadosController.delete);
+const verificarToken = require('../middleware/authMiddleware');
+
+const router = Router();
+router.use(verificarToken);
+
+router.post('/', crearEmpleado);
+router.get('/', listarEmpleados);
+router.get('/:documento', obtenerEmpleadoPorDocumento);
+router.put('/:documento', actualizarEmpleado);
+router.delete('/:documento', eliminarEmpleado);
 
 module.exports = router;

@@ -1,60 +1,60 @@
-const db = require('../models');
-const Empleados = db.Empleados;
+const { Empleados } = require('../models');
 
-exports.getAll = async (req, res) => {
-  try {
-    const empleados = await Empleados.findAll();
-    res.json(empleados);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener empleados', details: error.message });
-  }
-};
-
-exports.getById = async (req, res) => {
-  try {
-    const empleado = await Empleados.findByPk(req.params.documento);
-    if (!empleado) {
-      return res.status(404).json({ error: 'Empleado no encontrado' });
-    }
-    res.json(empleado);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener el empleado', details: error.message });
-  }
-};
-
-exports.create = async (req, res) => {
+exports.crearEmpleado = async (req, res) => {
   try {
     const nuevoEmpleado = await Empleados.create(req.body);
-    res.status(201).json(nuevoEmpleado);
-  } catch (error) {
-    res.status(400).json({ error: 'Error al crear empleado', details: error.message });
+    res.json({ status: 'success', data: nuevoEmpleado });
+  } catch (err) {
+    res.status(400).json({ status: 'error', message: err.message });
   }
 };
 
-exports.update = async (req, res) => {
+exports.listarEmpleados = async (req, res) => {
   try {
-    const [updated] = await Empleados.update(req.body, {
-      where: { Documento_Empleados: req.params.documento }
-    });
-    if (updated === 0) {
-      return res.status(404).json({ error: 'Empleado no encontrado o sin cambios' });
-    }
-    res.json({ message: 'Empleado actualizado correctamente' });
-  } catch (error) {
-    res.status(400).json({ error: 'Error al actualizar empleado', details: error.message });
+    const empleados = await Empleados.findAll();
+    res.json({ status: 'success', data: empleados });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
-exports.delete = async (req, res) => {
+exports.obtenerEmpleadoPorDocumento = async (req, res) => {
   try {
-    const deleted = await Empleados.destroy({
-      where: { Documento_Empleados: req.params.documento }
-    });
-    if (deleted === 0) {
-      return res.status(404).json({ error: 'Empleado no encontrado' });
+    const { documento } = req.params;
+    const empleado = await Empleados.findByPk(documento);
+    if (!empleado) {
+      return res.status(404).json({ status: 'error', message: 'Empleado no encontrado' });
     }
-    res.json({ message: 'Empleado eliminado correctamente' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar empleado', details: error.message });
+    res.json({ status: 'success', data: empleado });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+exports.actualizarEmpleado = async (req, res) => {
+  try {
+    const { documento } = req.params;
+    const empleado = await Empleados.findOne({ where: { Documento_Empleados: documento } });
+    if (!empleado) {
+      return res.status(404).json({ status: 'error', message: 'Empleado no encontrado' });
+    }
+    await Empleados.update(req.body, { where: { Documento_Empleados: documento } });
+    res.json({ status: 'success', message: 'Empleado actualizado' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+exports.eliminarEmpleado = async (req, res) => {
+  try {
+    const { documento } = req.params;
+    const empleado = await Empleados.findOne({ where: { Documento_Empleados: documento } });
+    if (!empleado) {
+      return res.status(404).json({ status: 'error', message: 'Empleado no encontrado' });
+    }
+    await Empleados.destroy({ where: { Documento_Empleados: documento } });
+    res.json({ status: 'success', message: 'Empleado eliminado' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };

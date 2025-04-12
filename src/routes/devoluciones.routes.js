@@ -1,11 +1,21 @@
-const express = require('express');
-const router = express.Router();
-const devolucionesController = require('../controllers/devolucionesController');
+const { Router } = require('express');
+const {
+  crearDevolucion,
+  listarDevoluciones,
+  obtenerDevolucionPorId,
+  actualizarDevolucion,
+  eliminarDevolucion
+} = require('../controllers/devoluciones.controller.js');
+const verificarToken = require('../middleware/authMiddleware');
 
-router.get('/', devolucionesController.getAll);
-router.get('/:id', devolucionesController.getById);
-router.post('/', devolucionesController.create);
-router.put('/:id', devolucionesController.update);
-router.delete('/:id', devolucionesController.delete);
+const router = Router();
+
+router.use(verificarToken);
+
+router.post('/', crearDevolucion);
+router.get('/', listarDevoluciones);
+router.get('/:id', obtenerDevolucionPorId);
+router.put('/:id', actualizarDevolucion);
+router.delete('/:id', eliminarDevolucion);
 
 module.exports = router;
