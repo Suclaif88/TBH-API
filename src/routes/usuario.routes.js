@@ -3,6 +3,7 @@ const {
   crearUsuario,
   listarUsuario,
   listarUsuarioPorDocumento,
+  buscarUsuarioPorEmail,
   actualizarUsuario,
   eliminarUsuario
 } = require('../controllers/usuario.controller');
@@ -15,6 +16,7 @@ router.use(verificarToken);
 
 router.get('/', listarUsuario);
 router.get('/:documento', listarUsuarioPorDocumento)
+router.get('/email/:email', buscarUsuarioPorEmail)
 router.post('/', crearUsuario);
 router.put('/:id', actualizarUsuario);
 router.delete('/:id', eliminarUsuario);
