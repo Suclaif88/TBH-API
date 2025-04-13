@@ -68,11 +68,7 @@ exports.eliminarUsuario = async (req, res) => {
 
 exports.buscarUsuarioPorEmail = async (req, res) => {
   try {
-    const { email } = req.query;
-
-    if (!email) {
-      return res.status(400).json({ status: 'error', message: 'Email requerido' });
-    }
+    const { email } = req.params;  
 
     const usuario = await Usuarios.findOne({ where: { email } });
 
