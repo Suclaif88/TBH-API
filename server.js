@@ -17,7 +17,7 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.get('/', (req, res) => {
   res.json({
     nombre: 'API de THE BARBER HOUSE',
-    version: '1.2.0',
+    version: process.env.VERSION || '0.0.0',
     autor: AUTOR,
     fecha: new Date().toISOString()
   });
