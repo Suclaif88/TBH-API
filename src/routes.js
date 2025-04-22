@@ -15,6 +15,7 @@ const devolucionesRoutes = require('./routes/devoluciones.routes.js')
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
 const ProductosRoutes = require('./routes/productos.routes.js');
 const ImagenesRoutes = require('./routes/imagenes.routes.js')
+const correoRoutes = require('./routes/correo.routes.js')
 
 
 router.use('/auth', authRoutes);
@@ -31,6 +32,8 @@ router.use('empleados',empleadosRoutes);
 router.use('devoluciones',devolucionesRoutes);
 
 router.use('/imagenes', ImagenesRoutes);
+
+router.use('/correo', correoRoutes);
 
 
 module.exports = router;
