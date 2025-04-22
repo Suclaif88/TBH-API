@@ -20,7 +20,7 @@ exports.enviarCorreo = async (req, res) => {
 
   const htmlContent = `
     <div style="font-family: Arial, sans-serif;">
-      <h2>¡Gracias por tu pedido! 🛒</h2>
+      <h2>¡Gracias por tu pedido en THE BARBER HOUSE! 🛒</h2>
       <p><strong>Número de Pedido:</strong> ${numeroPedido}</p>
       <p><strong>Fecha:</strong> ${pedido.fecha}</p>
       <p><strong>Estado:</strong> ${pedido.estado}</p>
@@ -40,7 +40,7 @@ exports.enviarCorreo = async (req, res) => {
       </table>
       <p><strong>Total: $${pedido.total.toFixed(2)}</strong></p>
       <p>Nos pondremos en contacto contigo cuando el pedido esté listo para ser entregado.</p>
-      <p style="color: #888;">Tienda App © 2025</p>
+      <p style="color: #888;">THE BARBER HOUSE © 2025</p>
     </div>
   `;
 
@@ -54,9 +54,9 @@ exports.enviarCorreo = async (req, res) => {
     });
 
     const mailOptions = {
-      from: `"Tienda App" <${process.env.EMAIL_USER}>`,
+      from: `"TBH" <${process.env.EMAIL_USER}>`,
       to: destinatario,
-      subject: 'Confirmación de tu pedido',
+      subject: 'Confirmación de pedido',
       html: htmlContent,
     };
 
