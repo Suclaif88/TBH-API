@@ -39,7 +39,7 @@ exports.enviarCorreo = async (req, res) => {
         </tbody>
       </table>
       <p><strong>Total: $${pedido.total.toFixed(2)}</strong></p>
-      <p>Nos pondremos en contacto contigo cuando el pedido esté listo para ser entregado.</p>
+      <p>Nos pondremos en contacto contigo cuando el pedido esté listo para ser recogido.</p>
       <p style="color: #888;">THE BARBER HOUSE © 2025</p>
     </div>
   `;
