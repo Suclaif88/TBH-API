@@ -4,48 +4,50 @@ const { Usuarios } = require('../models');
 const { Roles } = require('../models');
 
 exports.register = async (data) => {
-    const { documento, nombre, celular, email, password, direccion, rol_id } = data;
-  
-    try {
-      if (!documento) {
-        throw new Error('El campo documento es obligatorio');
-      }
-  
-      const usuarioExistente = await Usuarios.findOne({ where: { documento } });
-      if (usuarioExistente) {
-        throw new Error('El documento ya está registrado');
-      }
-  
-      const rolExistente = await Roles.findByPk(rol_id);
-      if (!rolExistente) {
-        throw new Error('Rol no encontrado');
-      }
-  
-      const hashedPassword = await bcrypt.hash(password, 10);
-  
-      const nuevoUsuario = await Usuarios.create({
-        documento,
-        nombre,
-        celular,
-        email,
-        password: hashedPassword,
-        direccion,
-        rol_id,
-      });
-  
-      const token = generarToken(nuevoUsuario);
-  
-      return {
-        status: 201,
-        data: {
-          usuario: nuevoUsuario,
-          token,
-        }
-      };
-    } catch (error) {
-      throw new Error(error.message);
+  const { documento, nombre, celular, email, password, direccion } = data;
+  const rol_id = 2; // Asignar rol_id por defecto a 2 (Usuario)
+
+  try {
+    if (!documento) {
+      throw new Error('El campo documento es obligatorio');
     }
-  };
+
+    const usuarioExistente = await Usuarios.findOne({ where: { documento } });
+    if (usuarioExistente) {
+      throw new Error('El documento ya está registrado');
+    }
+
+    const rolExistente = await Roles.findByPk(rol_id);
+    if (!rolExistente) {
+      throw new Error('Rol no encontrado');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const nuevoUsuario = await Usuarios.create({
+      documento,
+      nombre,
+      celular,
+      email,
+      password: hashedPassword,
+      direccion,
+      rol_id,
+    });
+
+    const token = generarToken(nuevoUsuario);
+
+    return {
+      status: 201,
+      data: {
+        usuario: nuevoUsuario,
+        token,
+      }
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
   
   exports.login = async (data) => {
     const { documento, email, password } = data;
