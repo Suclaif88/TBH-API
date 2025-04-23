@@ -28,8 +28,8 @@ router.use('/roles', rolesRoutes);
 router.use('/rolesPermisos', rolesPermisosRoutes);
 router.use('/permisos', Permisos);
 router.use('/usuarios', usuariosRoutes);
-router.use('empleados',empleadosRoutes);
-router.use('devoluciones',devolucionesRoutes);
+router.use('/empleados',empleadosRoutes);
+router.use('/devoluciones',devolucionesRoutes);
 
 router.use('/imagenes', ImagenesRoutes);
 
