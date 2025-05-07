@@ -2,18 +2,18 @@ const { RolPermiso } = require('../models');
 
 exports.crearRolPermiso = async (req, res) => {
   try {
-    const { rol_id, permisos } = req.body;
+    const { rol_id, Permisos } = req.body;
 
-    if (!Array.isArray(permisos)) {
-      return res.status(400).json({ status: 'error', message: 'El campo permisos debe ser un array' });
+    if (!Array.isArray(Permisos)) {
+      return res.status(400).json({ status: 'error', message: 'El campo Permisos debe ser un array' });
     }
 
-    if (permisos.length === 0) {
+    if (Permisos.length === 0) {
       return res.status(400).json({ status: 'error', message: 'Debe asignar al menos un permiso' });
     }
 
     const asignaciones = await Promise.all(
-      permisos.map(async (permiso_id) => {
+      Permisos.map(async (permiso_id) => {
         const [asignacion, creado] = await RolPermiso.findOrCreate({
           where: { rol_id, permiso_id },
         });
