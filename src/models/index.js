@@ -17,14 +17,14 @@ var _Empleados = require("./Empleados");
 var _Imagenes = require("./Imagenes");
 var _Insumos = require("./Insumos");
 var _Novedades_Horarios = require("./Novedades_Horarios");
-var _Permisos = require("./permisos");
+var _Permisos = require("./Permisos");
 var _Producto_Imagen = require("./Producto_Imagen");
 var _Producto_Tallas = require("./Producto_Tallas");
 var _Producto_Tamano = require("./Producto_Tamano");
 var _Producto_Tamano_Insumos = require("./Producto_Tamano_Insumos");
 var _Productos = require("./Productos");
 var _Proveedores = require("./Proveedores");
-var _Rol_Permiso = require("./rol_permiso");
+var _Rol_Permiso = require("./Rol_Permiso");
 var _Roles = require("./Roles");
 var _Servicio_Imagen = require("./Servicio_Imagen");
 var _Servicios = require("./Servicios");
@@ -33,7 +33,6 @@ var _Tamano = require("./Tamano");
 var _Tamano_Insumos = require("./Tamano_Insumos");
 var _Usuarios = require("./Usuarios");
 var _Ventas = require("./Ventas");
-var _roles = require("./Roles");
 
 function initModels(sequelize) {
   var Agendamiento_Servicios = _Agendamiento_Servicios(sequelize, DataTypes);
