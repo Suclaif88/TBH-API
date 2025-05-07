@@ -19,9 +19,13 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(100),
       allowNull: false
     },
-    Precio: {
+    Precio_Venta: {
       type: DataTypes.DECIMAL(10,2),
-      allowNull: false
+      allowNull: true
+    },
+    Precio_Compra: {
+      type: DataTypes.DECIMAL(10,2),
+      allowNull: true
     },
     Stock: {
       type: DataTypes.INTEGER,

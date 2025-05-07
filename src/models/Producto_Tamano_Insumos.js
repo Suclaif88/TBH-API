@@ -7,20 +7,12 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    Id_Productos: {
+    Id_Producto_Tamano: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Productos',
-        key: 'Id_Productos'
-      }
-    },
-    Id_Tamano: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'Tamano',
-        key: 'Id_Tamano'
+        model: 'Producto_Tamano',
+        key: 'Id_Producto_Tamano'
       }
     },
     Id_Insumos: {
@@ -49,17 +41,10 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "Id_Productos",
+        name: "Id_Producto_Tamano",
         using: "BTREE",
         fields: [
-          { name: "Id_Productos" },
-        ]
-      },
-      {
-        name: "Id_Tamano",
-        using: "BTREE",
-        fields: [
-          { name: "Id_Tamano" },
+          { name: "Id_Producto_Tamano" },
         ]
       },
       {

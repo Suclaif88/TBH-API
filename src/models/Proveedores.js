@@ -7,17 +7,49 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    Nombre: {
-      type: DataTypes.STRING(100),
-      allowNull: false
-    },
-    Telefono: {
+    Tipo_Proveedor: {
       type: DataTypes.STRING(15),
       allowNull: false
+    },
+    NIT: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    Nombre_Empresa: {
+      type: DataTypes.STRING(30),
+      allowNull: true
+    },
+    Asesor: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    Celular_Empresa: {
+      type: DataTypes.CHAR(10),
+      allowNull: true
+    },
+    Celular_Asesor: {
+      type: DataTypes.CHAR(10),
+      allowNull: true
+    },
+    Documento: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    Nombre: {
+      type: DataTypes.STRING(25),
+      allowNull: true
+    },
+    Celular: {
+      type: DataTypes.STRING(15),
+      allowNull: true
     },
     Email: {
       type: DataTypes.STRING(100),
       allowNull: false
+    },
+    Direccion: {
+      type: DataTypes.STRING(50),
+      allowNull: true
     },
     Estado: {
       type: DataTypes.BOOLEAN,

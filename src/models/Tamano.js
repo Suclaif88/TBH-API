@@ -10,6 +10,19 @@ module.exports = function(sequelize, DataTypes) {
     Nombre: {
       type: DataTypes.STRING(50),
       allowNull: false
+    },
+    Cantidad_Maxima: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    Precio_Venta: {
+      type: DataTypes.DECIMAL(10,2),
+      allowNull: false
+    },
+    Estado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: 1
     }
   }, {
     sequelize,

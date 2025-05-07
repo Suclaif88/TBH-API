@@ -1,40 +1,35 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Detalle_Productos', {
-    Id_Detalle_Productos: {
+  return sequelize.define('Tamano_Insumos', {
+    Id_Tamano_Insumos: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
-    Id_Compras: {
+    Id_Tamano: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
-        model: 'Compras',
-        key: 'Id_Compras'
+        model: 'Tamano',
+        key: 'Id_Tamano'
       }
     },
-    Id_Productos: {
+    Id_Insumos: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
-        model: 'Productos',
-        key: 'Id_Productos'
+        model: 'Insumos',
+        key: 'Id_Insumos'
       }
     },
     Cantidad: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    Precio: {
       type: DataTypes.DECIMAL(10,2),
       allowNull: false
     }
   }, {
     sequelize,
-    tableName: 'Detalle_Productos',
-    hasTrigger: true,
+    tableName: 'Tamano_Insumos',
     timestamps: false,
     indexes: [
       {
@@ -42,21 +37,21 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "Id_Detalle_Productos" },
+          { name: "Id_Tamano_Insumos" },
         ]
       },
       {
-        name: "Id_Compras",
+        name: "Id_Tamano",
         using: "BTREE",
         fields: [
-          { name: "Id_Compras" },
+          { name: "Id_Tamano" },
         ]
       },
       {
-        name: "Id_Productos",
+        name: "Id_Insumos",
         using: "BTREE",
         fields: [
-          { name: "Id_Productos" },
+          { name: "Id_Insumos" },
         ]
       },
     ]

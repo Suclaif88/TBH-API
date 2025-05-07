@@ -1,20 +1,25 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  const Permisos = sequelize.define('permisos', {
-    id: {
+  return sequelize.define('Permisos', {
+    Id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
-    nombre: {
+    Nombre: {
       type: DataTypes.STRING(30),
       allowNull: false,
-      unique: "nombre"
+      unique: "Nombre"
+    },
+    Estado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: 1
     }
   }, {
     sequelize,
-    tableName: 'permisos',
+    tableName: 'Permisos',
     timestamps: false,
     indexes: [
       {
@@ -22,27 +27,17 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "id" },
+          { name: "Id" },
         ]
       },
       {
-        name: "nombre",
+        name: "Nombre",
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "nombre" },
+          { name: "Nombre" },
         ]
       },
     ]
   });
-
-  Permisos.associate = models => {
-    Permisos.belongsToMany(models.Roles, {
-      through: models.RolPermiso,
-      foreignKey: 'permiso_id',
-      otherKey: 'rol_id'
-    });
-  };
-  
-  return Permisos;
 };

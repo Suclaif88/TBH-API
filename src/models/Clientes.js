@@ -4,10 +4,18 @@ module.exports = function(sequelize, DataTypes) {
     Documento_Cliente: {
       type: DataTypes.STRING(20),
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      references: {
+        model: 'Usuarios',
+        key: 'Documento'
+      }
+    },
+    Tipo_Documento: {
+      type: DataTypes.STRING(40),
+      allowNull: false
     },
     Nombre: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(50),
       allowNull: false
     },
     Celular: {
@@ -21,6 +29,18 @@ module.exports = function(sequelize, DataTypes) {
     F_Nacimiento: {
       type: DataTypes.DATEONLY,
       allowNull: false
+    },
+    Direccion: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    Sexo: {
+      type: DataTypes.CHAR(1),
+      allowNull: false
+    },
+    Saldo_A_Favor: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     },
     Estado: {
       type: DataTypes.BOOLEAN,

@@ -1,57 +1,57 @@
-  const Sequelize = require('sequelize');
-  module.exports = function(sequelize, DataTypes) {
-    return sequelize.define('rol_permiso', {
-      id: {
-        autoIncrement: true,
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        primaryKey: true
-      },
-      rol_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'roles',
-          key: 'id'
-        }
-      },
-      permiso_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'permisos',
-          key: 'id'
-        }
+const Sequelize = require('sequelize');
+module.exports = function(sequelize, DataTypes) {
+  return sequelize.define('Rol_Permiso', {
+    Id: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true
+    },
+    Rol_Id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Roles',
+        key: 'Id'
       }
-    }, {
-      sequelize,
-      tableName: 'rol_permiso',
-      timestamps: false,
-      indexes: [
-        {
-          name: "PRIMARY",
-          unique: true,
-          using: "BTREE",
-          fields: [
-            { name: "id" },
-          ]
-        },
-        {
-          name: "rol_id",
-          unique: true,
-          using: "BTREE",
-          fields: [
-            { name: "rol_id" },
-            { name: "permiso_id" },
-          ]
-        },
-        {
-          name: "permiso_id",
-          using: "BTREE",
-          fields: [
-            { name: "permiso_id" },
-          ]
-        },
-      ]
-    });
-  };
+    },
+    Permiso_Id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Permisos',
+        key: 'Id'
+      }
+    }
+  }, {
+    sequelize,
+    tableName: 'Rol_Permiso',
+    timestamps: false,
+    indexes: [
+      {
+        name: "PRIMARY",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "Id" },
+        ]
+      },
+      {
+        name: "Rol_Id",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "Rol_Id" },
+          { name: "Permiso_Id" },
+        ]
+      },
+      {
+        name: "Permiso_Id",
+        using: "BTREE",
+        fields: [
+          { name: "Permiso_Id" },
+        ]
+      },
+    ]
+  });
+};

@@ -7,24 +7,20 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    Id_Detalle_Venta_Tallas: {
-      type: DataTypes.INTEGER,
+    Documento_Cliente: {
+      type: DataTypes.STRING(20),
       allowNull: true,
       references: {
-        model: 'Detalle_Venta_Tallas',
-        key: 'Id_Detalle_Venta_Tallas'
+        model: 'Clientes',
+        key: 'Documento_Cliente'
       }
     },
-    Cantidad: {
+    Total: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
     Fecha: {
       type: DataTypes.DATEONLY,
-      allowNull: false
-    },
-    Motivo: {
-      type: DataTypes.TEXT,
       allowNull: false
     },
     Estado: {
@@ -35,6 +31,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     sequelize,
     tableName: 'Devoluciones',
+    hasTrigger: true,
     timestamps: false,
     indexes: [
       {
@@ -46,10 +43,10 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "Id_Detalle_Venta_Tallas",
+        name: "Documento_Cliente",
         using: "BTREE",
         fields: [
-          { name: "Id_Detalle_Venta_Tallas" },
+          { name: "Documento_Cliente" },
         ]
       },
     ]

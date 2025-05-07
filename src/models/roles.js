@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  const Roles = sequelize.define('roles', {
+  return sequelize.define('roles', {
     id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
@@ -39,15 +39,12 @@ module.exports = function(sequelize, DataTypes) {
       },
     ]
   });
-
-  Roles.associate = models => {
-    Roles.belongsToMany(models.Permisos, {
-      through: models.RolPermiso,
-      foreignKey: 'rol_id',
-      otherKey: 'permiso_id'
-    });
-  };
-
-  return Roles;
-
+};
+using: "BTREE",
+        fields: [
+          { name: "Nombre" },
+        ]
+      },
+    ]
+  });
 };

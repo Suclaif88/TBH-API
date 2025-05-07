@@ -38,16 +38,17 @@ module.exports = function(sequelize, DataTypes) {
     },
     Total: {
       type: DataTypes.DECIMAL(10,2),
-      allowNull: false
+      allowNull: true
     },
     Estado: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: 1
+      type: DataTypes.TINYINT,
+      allowNull: true,
+      defaultValue: 0
     }
   }, {
     sequelize,
     tableName: 'Ventas',
+    hasTrigger: true,
     timestamps: false,
     indexes: [
       {

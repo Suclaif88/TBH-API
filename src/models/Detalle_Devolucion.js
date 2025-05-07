@@ -1,18 +1,26 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Detalle_Venta_Tamano', {
-    Id_Detalle_Venta_Tamano: {
+  return sequelize.define('Detalle_Devolucion', {
+    Id_Detalle_Devolucion: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
-    Id_Ventas: {
+    Id_Devoluciones: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'Ventas',
-        key: 'Id_Ventas'
+        model: 'Devoluciones',
+        key: 'Id_Devoluciones'
+      }
+    },
+    Id_Detalle_Venta: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'Detalle_Venta',
+        key: 'Id_Detalle_Venta'
       }
     },
     Id_Productos: {
@@ -23,25 +31,29 @@ module.exports = function(sequelize, DataTypes) {
         key: 'Id_Productos'
       }
     },
-    Id_Tamano: {
+    Id_Producto_Tallas: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'Tamano',
-        key: 'Id_Tamano'
+        model: 'Producto_Tallas',
+        key: 'Id_Producto_Tallas'
       }
     },
     Cantidad: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: true
     },
-    Precio: {
+    Subtotal: {
       type: DataTypes.DECIMAL(10,2),
       allowNull: false
+    },
+    Motivo: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     sequelize,
-    tableName: 'Detalle_Venta_Tamano',
+    tableName: 'Detalle_Devolucion',
     hasTrigger: true,
     timestamps: false,
     indexes: [
@@ -50,14 +62,21 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "Id_Detalle_Venta_Tamano" },
+          { name: "Id_Detalle_Devolucion" },
         ]
       },
       {
-        name: "Id_Ventas",
+        name: "Id_Devoluciones",
         using: "BTREE",
         fields: [
-          { name: "Id_Ventas" },
+          { name: "Id_Devoluciones" },
+        ]
+      },
+      {
+        name: "Id_Detalle_Venta",
+        using: "BTREE",
+        fields: [
+          { name: "Id_Detalle_Venta" },
         ]
       },
       {
@@ -68,10 +87,10 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "Id_Tamano",
+        name: "Id_Producto_Tallas",
         using: "BTREE",
         fields: [
-          { name: "Id_Tamano" },
+          { name: "Id_Producto_Tallas" },
         ]
       },
     ]

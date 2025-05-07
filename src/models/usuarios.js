@@ -1,66 +1,50 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('usuarios', {
-    documento: {
-      type: DataTypes.STRING(10),
+  return sequelize.define('Usuarios', {
+    Documento: {
+      type: DataTypes.STRING(20),
       allowNull: false,
       primaryKey: true
     },
-    nombre: {
-      type: DataTypes.STRING(100),
-      allowNull: false
-    },
-    celular: {
-      type: DataTypes.STRING(10),
-      allowNull: false
-    },
-    email: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      unique: "email"
-    },
-    direccion: {
-      type: DataTypes.STRING(80),
-      allowNull: false
-    },
-    password: {
+    Password: {
       type: DataTypes.STRING(255),
       allowNull: false
     },
-    rol_id: {
+    Correo: {
+      type: DataTypes.STRING(100),
+      allowNull: false
+    },
+    Estado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: 1
+    },
+    Rol_Id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'roles',
-        key: 'id'
+        model: 'Roles',
+        key: 'Id'
       }
     }
   }, {
     sequelize,
-    tableName: 'usuarios',
-    timestamps: true,
+    tableName: 'Usuarios',
+    timestamps: false,
     indexes: [
       {
         name: "PRIMARY",
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "documento" },
+          { name: "Documento" },
         ]
       },
       {
-        name: "email",
-        unique: true,
+        name: "Rol_Id",
         using: "BTREE",
         fields: [
-          { name: "email" },
-        ]
-      },
-      {
-        name: "rol_id",
-        using: "BTREE",
-        fields: [
-          { name: "rol_id" },
+          { name: "Rol_Id" },
         ]
       },
     ]

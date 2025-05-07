@@ -1,35 +1,35 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Detalle_Venta_Productos', {
-    Id_Detalle_Venta_Productos: {
+  return sequelize.define('Detalle_Compra_Insumos', {
+    Id_Detalle_Insumos: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
-    Id_Ventas: {
+    Id_Compras: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'Ventas',
-        key: 'Id_Ventas'
+        model: 'Compras',
+        key: 'Id_Compras'
       }
     },
-    Id_Productos: {
+    Id_Insumos: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'Productos',
-        key: 'Id_Productos'
+        model: 'Insumos',
+        key: 'Id_Insumos'
       }
     },
     Cantidad: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    Precio: {
+    Precio_ml: {
       type: DataTypes.DECIMAL(10,2),
-      allowNull: false
+      allowNull: true
     },
     Subtotal: {
       type: DataTypes.DECIMAL(10,2),
@@ -37,7 +37,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   }, {
     sequelize,
-    tableName: 'Detalle_Venta_Productos',
+    tableName: 'Detalle_Compra_Insumos',
     hasTrigger: true,
     timestamps: false,
     indexes: [
@@ -46,21 +46,21 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "Id_Detalle_Venta_Productos" },
+          { name: "Id_Detalle_Insumos" },
         ]
       },
       {
-        name: "Id_Ventas",
+        name: "Id_Compras",
         using: "BTREE",
         fields: [
-          { name: "Id_Ventas" },
+          { name: "Id_Compras" },
         ]
       },
       {
-        name: "Id_Productos",
+        name: "Id_Insumos",
         using: "BTREE",
         fields: [
-          { name: "Id_Productos" },
+          { name: "Id_Insumos" },
         ]
       },
     ]
