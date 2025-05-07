@@ -24,7 +24,7 @@ var _Producto_Tamano = require("./Producto_Tamano");
 var _Producto_Tamano_Insumos = require("./Producto_Tamano_Insumos");
 var _Productos = require("./Productos");
 var _Proveedores = require("./Proveedores");
-var _Rol_Permiso = require("./rol_permiso");
+var _Rol_Permiso = require("./Rol_Permiso");
 var _Roles = require("./Roles");
 var _Servicio_Imagen = require("./Servicio_Imagen");
 var _Servicios = require("./Servicios");
@@ -67,7 +67,6 @@ function initModels(sequelize) {
   var Tamano_Insumos = _Tamano_Insumos(sequelize, DataTypes);
   var Usuarios = _Usuarios(sequelize, DataTypes);
   var Ventas = _Ventas(sequelize, DataTypes);
-  var roles = _roles(sequelize, DataTypes);
 
   Agendamiento_Servicios.belongsTo(Agendamientos, { as: "Id_Agendamientos_Agendamiento", foreignKey: "Id_Agendamientos"});
   Agendamientos.hasOne(Agendamiento_Servicios, { as: "Agendamiento_Servicio", foreignKey: "Id_Agendamientos"});
@@ -201,7 +200,6 @@ function initModels(sequelize) {
     Tamano_Insumos,
     Usuarios,
     Ventas,
-    roles,
   };
 }
 module.exports = initModels;
