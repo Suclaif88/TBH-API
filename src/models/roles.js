@@ -1,20 +1,25 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('Roles', {
-    id: {
+    Id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
-    nombre: {
+    Nombre: {
       type: DataTypes.STRING(30),
       allowNull: false,
-      unique: "nombre"
+      unique: "Nombre"
     },
-    descripcion: {
+    Descripcion: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    Estado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: 1
     }
   }, {
     sequelize,
@@ -26,15 +31,15 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "id" },
+          { name: "Id" },
         ]
       },
       {
-        name: "nombre",
+        name: "Nombre",
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "nombre" },
+          { name: "Nombre" },
         ]
       },
     ]
