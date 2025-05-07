@@ -5,7 +5,7 @@ const {
     listarPermisoId,
     actualizarPermiso,
     eliminarPermiso
-} = require('../controllers/Permisos.controller');
+} = require('../controllers/permisos.controller');
 
 const verificarToken = require('../middleware/authMiddleware');
 
