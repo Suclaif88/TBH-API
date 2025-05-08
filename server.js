@@ -9,6 +9,8 @@ const app = express();
 const AUTOR = process.env.AUTOR || "SRD";
 const PORT = process.env.PORT || 3000;
 const APP_URL = process.env.APP_URL || 'http://localhost';
+const APP_NAME = process.env.APP_NAME || 'API THE BARBER HOUSE';
+const APP_VERSION = process.env.APP_VERSION || '1.0.0';
 
 app.use(cors());
 app.use(express.json());
@@ -16,8 +18,8 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
 app.get('/', (req, res) => {
   res.json({
-    nombre: 'API de THE BARBER HOUSE',
-    version: process.env.VERSION || '0.0.0',
+    nombre: APP_NAME,
+    version: APP_VERSION,
     autor: AUTOR,
     fecha: new Date().toISOString()
   });
