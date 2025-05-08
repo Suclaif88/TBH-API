@@ -202,9 +202,7 @@ function initModels(sequelize) {
     Ventas,
   };
 }
-module.exports = initModels;
-module.exports.initModels = initModels;
-module.exports.default = initModels;
-module.exports.models = initModels(sequelize);
+const models = initModels(sequelize);
+module.exports = models;
 
 //Si llegaste aqui es porque tienes muy mala suerte y algun modelo no se cargo correctamente que mal....
