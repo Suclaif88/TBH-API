@@ -1,23 +1,19 @@
 const authService = require('../services/auth.service');
 
 exports.register = async (req, res) => {
-  const { documento, nombre, celular, email, password, direccion } = req.body;
+  const { documento, correo, password } = req.body;
 
-  if (!documento || !nombre || !celular || !direccion) {
+  if (!documento ) {
     return res.status(400).json({ message: "Faltan campos obligatorios" });
   }
 
-  if (celular.length !== 10) {
-    return res.status(400).json({ message: "El número de celular debe tener 10 dígitos" });
-  }
-
-  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-  if (!emailRegex.test(email)) {
+  const correoRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  if (!correoRegex.test(correo)) {
     return res.status(400).json({ message: "Correo electrónico inválido" });
   }
 
   try {
-    const response = await authService.register({ documento, nombre, celular, email, password, direccion });
+    const response = await authService.register({ documento, correo, password });
     if (response.status && response.data) {
       return res.status(response.status).json(response.data);
     } else {
@@ -29,9 +25,9 @@ exports.register = async (req, res) => {
 };
 
   exports.login = async (req, res) => {
-    const { documento, email, password } = req.body;
+    const { documento, correo, password } = req.body;
   
-    if (!documento && !email) {
+    if (!documento && !correo) {
       return res.status(400).json({ message: 'Documento o email son requeridos' });
     }
   
@@ -40,7 +36,7 @@ exports.register = async (req, res) => {
     }
   
     try {
-      const response = await authService.login({ documento, email, password });
+      const response = await authService.login({ documento, correo, password });
   
       return res.status(response.status).json(response.data);
     } catch (error) {

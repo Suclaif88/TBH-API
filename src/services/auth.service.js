@@ -3,7 +3,7 @@ const generarToken = require('../utils/generarToken');
 const { Usuarios, Roles } = require('../models');
 
 exports.register = async (data) => {
-  const { documento, nombre, celular, email, password, direccion } = data;
+  const { documento, correo ,password} = data;
   const rol_id = 2; // Asignar rol_id por defecto a 2 (Usuario)
 
   try {
@@ -11,9 +11,18 @@ exports.register = async (data) => {
       throw new Error('El campo documento es obligatorio');
     }
 
+    if (!correo) {
+      throw new Error('El campo correo es obligatorio');
+    }
+
     const usuarioExistente = await Usuarios.findOne({ where: { documento } });
     if (usuarioExistente) {
       throw new Error('El documento ya está registrado');
+    }
+
+    const usuarioExistenteCorreo = await Usuarios.findOne({ where: { correo } });
+    if (usuarioExistenteCorreo) {
+      throw new Error('El correo ya está registrado');
     }
 
     const rolExistente = await Roles.findByPk(rol_id);
@@ -25,11 +34,8 @@ exports.register = async (data) => {
 
     const nuevoUsuario = await Usuarios.create({
       documento,
-      nombre,
-      celular,
-      email,
+      correo,
       password: hashedPassword,
-      direccion,
       rol_id,
     });
 
@@ -49,15 +55,15 @@ exports.register = async (data) => {
 
   
   exports.login = async (data) => {
-    const { documento, email, password } = data;
+    const { documento, correo, password } = data;
   
     try {
       let usuario;
 
       if (documento) {
         usuario = await Usuarios.findOne({ where: { documento } });
-      } else if (email) {
-        usuario = await Usuarios.findOne({ where: { email } });
+      } else if (correo) {
+        usuario = await Usuarios.findOne({ where: { correo } });
       }
   
       if (!usuario) {
