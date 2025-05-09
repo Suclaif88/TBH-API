@@ -12,7 +12,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     Correo: {
       type: DataTypes.STRING(100),
-      allowNull: false
+      allowNull: false,
+      unique: true
     },
     Estado: {
       type: DataTypes.BOOLEAN,

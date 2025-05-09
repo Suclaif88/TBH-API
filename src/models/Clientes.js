@@ -21,11 +21,7 @@ module.exports = function(sequelize, DataTypes) {
     Celular: {
       type: DataTypes.STRING(15),
       allowNull: false
-    },
-    Correo: {
-      type: DataTypes.STRING(100),
-      allowNull: false
-    },
+    },  
     F_Nacimiento: {
       type: DataTypes.DATEONLY,
       allowNull: false
