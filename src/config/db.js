@@ -1,5 +1,8 @@
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
+const ora = require("ora");
+
+const spinner = ora("Conectando a la base de datos...").start();
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -13,9 +16,22 @@ const sequelize = new Sequelize(
   }
 );
 
-sequelize
-  .authenticate()
-  .then(() => console.log("Conexión exitosa a la base de datos"))
-  .catch((err) => console.error("Error de conexión de base de datos:", err));
+const conectarBD = async () => {
+  try {
+    await sequelize.authenticate();
+    setTimeout(() => {
+      spinner.succeed("Conexión exitosa a la base de datos");
+    }, 2000);
 
-module.exports = sequelize;
+    return true;
+  } catch (err) {
+    setTimeout(() => {
+      spinner.fail("Error de conexión de base de datos");
+    }, 1500);
+
+    console.error(err);
+    return false;
+  }
+};
+
+module.exports = { sequelize, conectarBD };
