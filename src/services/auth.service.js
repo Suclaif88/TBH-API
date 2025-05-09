@@ -4,6 +4,7 @@ const { Usuarios, Roles } = require('../models');
 
 exports.register = async (data) => {
   const { Documento, Correo, Password, Estado , Rol_Id } = data;
+
   const rol_id = 2; // Asignar rol_id por defecto a 2 (Usuario)
   const estado = 0; // Asignar estado por defecto a 0 (Inactivo)
 
@@ -21,6 +22,7 @@ exports.register = async (data) => {
     }
 
     const usuarioExistenteCorreo = await Usuarios.findOne({ where: { Correo } });
+
     if (usuarioExistenteCorreo) {
       throw new Error('El correo ya está registrado');
     }
@@ -57,6 +59,7 @@ exports.register = async (data) => {
   
   exports.login = async (data) => {
     const { Documento, Correo, Password } = data;
+
   
     try {
       let usuario;
@@ -65,6 +68,7 @@ exports.register = async (data) => {
         usuario = await Usuarios.findOne({ where: { Documento } });
       } else if (Correo) {
         usuario = await Usuarios.findOne({ where: { Correo } });
+
       }
   
       if (!usuario) {
