@@ -1,23 +1,23 @@
 const authService = require('../services/auth.service');
 
 exports.register = async (req, res) => {
-  const { documento, nombre, celular, email, password, direccion } = req.body;
+  const { Documento, Correo, Password} = req.body;
 
-  if (!documento || !nombre || !celular || !direccion) {
+  if (!Documento) {
+
     return res.status(400).json({ message: "Faltan campos obligatorios" });
   }
 
-  if (celular.length !== 10) {
-    return res.status(400).json({ message: "El número de celular debe tener 10 dígitos" });
-  }
+  const correoRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
 
-  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-  if (!emailRegex.test(email)) {
+  if (!correoRegex.test(Correo)) {
+
     return res.status(400).json({ message: "Correo electrónico inválido" });
   }
 
   try {
-    const response = await authService.register({ documento, nombre, celular, email, password, direccion });
+    const response = await authService.register({ Documento, Correo, Password });
+
     if (response.status && response.data) {
       return res.status(response.status).json(response.data);
     } else {
@@ -29,19 +29,20 @@ exports.register = async (req, res) => {
 };
 
   exports.login = async (req, res) => {
-    const { documento, email, password } = req.body;
+    const { Documento, Correo, Password } = req.body;
   
-    if (!documento && !email) {
-      return res.status(400).json({ message: 'Documento o email son requeridos' });
+    if (!Documento && !Correo) {
+      return res.status(400).json({ message: 'Documento o correo son requeridos' });
+
     }
   
-    if (!password) {
+    if (!Password) {
       return res.status(400).json({ message: 'La contraseña es requerida' });
     }
   
     try {
-      const response = await authService.login({ documento, email, password });
-  
+      const response = await authService.login({ Documento, Correo, Password });
+
       return res.status(response.status).json(response.data);
     } catch (error) {
       return res.status(401).json({ message: 'Error de autenticación', error: error.message });
