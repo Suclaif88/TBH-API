@@ -1,2 +1,2 @@
 # API OFICIAL THE BARBER HOUSE
-## V.1.2.0
+## V.2.0.0
