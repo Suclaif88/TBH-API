@@ -1,6 +1,7 @@
 const { conectarBD } = require("./src/config/db");
 require("dotenv").config();
 const express = require("express");
+const { limiter } = require('./src/middleware/rateLimiters');
 const cors = require("cors");
 const routes = require("./src/routes");
 const favicon = require("serve-favicon");
@@ -28,6 +29,7 @@ const iniciarServidor = async () => {
     }, 5500);
 
     app.use(cors());
+    app.use(limiter);
     app.use(express.json());
     app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 

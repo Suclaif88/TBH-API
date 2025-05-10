@@ -3,7 +3,7 @@ const generarToken = require('../utils/generarToken');
 const { Usuarios, Roles } = require('../models');
 
 exports.register = async (data) => {
-  const { Documento, Correo, Password, Estado , Rol_Id } = data;
+  const { Documento, Correo, Password } = data;
 
   const rol_id = 2; // Asignar rol_id por defecto a 2 (Usuario)
   const estado = 0; // Asignar estado por defecto a 0 (Inactivo)
