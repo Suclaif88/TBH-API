@@ -20,6 +20,14 @@ const spinner = ora("Iniciando TBH API...").start();
 const iniciarServidor = async () => {
   const conexionExitosa = await conectarBD();
   if (conexionExitosa) {
+    setTimeout(() => {
+      spinner.succeed("TBH-API Iniciada correctamente");
+      const spinnerUrl = ora("Preparando todo...").start();
+      setTimeout(() => {
+        spinnerUrl.succeed(`Servidor corriendo en ${APP_URL}:${PORT}`);
+      }, 5000);
+    }, 5500);
+
     app.use(cors());
     app.use(limiter);
     app.use(express.json());
@@ -36,16 +44,12 @@ const iniciarServidor = async () => {
 
     app.use("/api", routes);
 
-    app.listen(PORT, () => {
-      spinner.succeed("TBH-API Iniciada correctamente");
-      const spinnerUrl = ora("Preparando todo...").start();
-      setTimeout(() => {
-        spinnerUrl.succeed(`Servidor corriendo en ${APP_URL}:${PORT}`);
-      }, 5500);
-    });
+    app.listen(PORT);
   } else {
     spinner.fail("Error al conectar con la base de datos. El servidor no se iniciará :(");
   }
 };
 
 iniciarServidor();
+
+//ESTE ARCHIVO NO SE TOCA
