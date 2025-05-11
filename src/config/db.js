@@ -7,7 +7,7 @@ const spinner = ora("Conectando a la base de datos...").start();
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  spinner.fail("DATABASE_URL no está definida en las variables de entorno");
+  spinner.fail("DATABASE_URL no está definido en las variables de entorno");
   process.exit(1);
 }
 
@@ -22,8 +22,8 @@ const conectarBD = async () => {
     spinner.succeed("Conexión exitosa a la base de datos");
     return true;
   } catch (err) {
-    spinner.fail("Error de conexión a la base de datos");
-    console.error(err);
+    spinner.fail("Error de conexión de base de datos");
+    console.error("Error de conexión Sequelize:", err.message || err);
     return false;
   }
 };
