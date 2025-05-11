@@ -34,7 +34,7 @@ const iniciarServidor = async () => {
     app.use("/api", routes);
 
     app.listen(PORT, () => {
-      console.log(`Servidor corriendo en ${APP_URL}:${PORT}`);
+      console.log(`TBH-API Iniciada correctamente para produccion`);
     });
   } else {
     console.error("Error al conectar con la base de datos. El servidor no se iniciará :(");
