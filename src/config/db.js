@@ -6,11 +6,6 @@ const spinner = ora("Conectando a la base de datos...").start();
 
 const databaseUrl = process.env.DATABASE_URL;
 
-if (!databaseUrl) {
-  spinner.fail("DATABASE_URL no está definido en el entorno");
-  process.exit(1);
-}
-
 const sequelize = new Sequelize(databaseUrl, {
   dialect: "mysql",
   logging: false,
@@ -19,10 +14,16 @@ const sequelize = new Sequelize(databaseUrl, {
 const conectarBD = async () => {
   try {
     await sequelize.authenticate();
-    spinner.succeed("Conexión exitosa a la base de datos");
+    setTimeout(() => {
+      spinner.succeed("Conexión exitosa a la base de datos");
+    }, 2000);
+
     return true;
   } catch (err) {
-    spinner.fail("Error de conexión de base de datos");
+    setTimeout(() => {
+      spinner.fail("Error de conexión de base de datos");
+    }, 1500);
+
     console.error(err);
     return false;
   }
