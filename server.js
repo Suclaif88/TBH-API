@@ -27,7 +27,8 @@ const iniciarServidor = async () => {
         spinnerUrl.succeed(`Servidor corriendo en ${APP_URL}:${PORT}`);
       }, 5000);
     }, 5500);
-
+    
+    app.set('trust proxy', 1);
     app.use(cors());
     app.use(limiter);
     app.use(express.json());
