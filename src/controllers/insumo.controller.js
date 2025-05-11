@@ -1,18 +1,36 @@
 const { Insumos } = require('../models');
 
-exports.crearInsumo = async (req, res) => {
+exports.listarInsumos = async (req, res) => {
   try {
-    const nuevoInsumo = await Insumos.create(req.body);
-    res.json({ status: 'success', data: nuevoInsumo });
+    const insumos = await Insumos.findAll();
+    res.json({ status: 'success', data: insumos });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
-exports.listarInsumos = async (req, res) => {
+exports.obtenerInsumoPorId = async (req, res) => {
   try {
-    const insumos = await Insumos.findAll();
-    res.json({ status: 'success', data: insumos });
+    const { id } = req.params;
+    const insumo = await Insumos.findByPk(id);
+
+    if (!insumo) {
+      return res.status(404).json({ status: 'error', message: 'Insumo no encontrado' });
+    }
+
+    res.json({ status: 'success', data: insumo });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+
+//--------------------------------------------------------------------------
+
+exports.crearInsumo = async (req, res) => {
+  try {
+    const nuevoInsumo = await Insumos.create(req.body);
+    res.json({ status: 'success', data: nuevoInsumo });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
