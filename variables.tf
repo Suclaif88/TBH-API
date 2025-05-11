@@ -1,58 +1,63 @@
-variable "service_id" {
-  description = "ID del servicio Railway"
+variable "NODE_ENV" {
+  description = "El entorno de Node.js (ej. production, development)"
   type        = string
 }
 
-variable "environment_id" {
-  description = "ID del entorno Railway"
+variable "APP_NAME" {
+  description = "Nombre de la API"
   type        = string
 }
 
-variable "database_url" {
-  description = "URL de conexión a la base de datos"
+variable "APP_VERSION" {
+  description = "La versión de la aplicación"
   type        = string
-  sensitive   = true
 }
 
-variable "app_url" {
+variable "AUTOR" {
+  description = "El autor de la aplicación"
+  type        = string
+}
+
+variable "APP_URL" {
   description = "La URL de la aplicación"
   type        = string
 }
 
-variable "jwt_secret" {
+variable "JWT_SECRET" {
   description = "El secreto para JWT"
   type        = string
   sensitive   = true
 }
 
-variable "autor" {
-  description = "El autor de la aplicación"
+variable "DATABASE_URL" {
+  description = "URL de conexión a la base de datos"
   type        = string
+  sensitive   = true
 }
 
-variable "app_version" {
-  description = "La versión de la aplicación"
-  type        = string
-}
-
-variable "cloudinary_cloud_name" {
+variable "CLOUDINARY_CLOUD_NAME" {
   description = "El nombre de tu cloud en Cloudinary"
   type        = string
 }
 
-variable "cloudinary_api_key" {
+variable "CLOUDINARY_API_KEY" {
   description = "API Key para Cloudinary"
   type        = string
   sensitive   = true
 }
 
-variable "cloudinary_api_secret" {
+variable "CLOUDINARY_API_SECRET" {
   description = "API Secret para Cloudinary"
   type        = string
   sensitive   = true
 }
 
-variable "node_env" {
-  description = "El entorno de Node.js (ej. production, development)"
+variable "SERVICE_ID" {
+  description = "ID del servicio Railway"
+  type        = string
+}
+
+variable "ENVIRONMENT_ID" {
+  description = "ID del entorno Railway"
   type        = string
 }

@@ -10,65 +10,72 @@ terraform {
 provider "railway" {
 }
 
-resource "railway_variable" "app_url" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
-  name           = "APP_URL"
-  value          = var.app_url
-}
-
-resource "railway_variable" "jwt_secret" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
-  name           = "JWT_SECRET"
-  value          = var.jwt_secret
-}
-
-resource "railway_variable" "autor" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
-  name           = "AUTOR"
-  value          = var.autor
-}
-
-resource "railway_variable" "version" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
-  name           = "VERSION"
-  value          = var.app_version
-}
-
-resource "railway_variable" "cloudinary_cloud_name" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
-  name           = "CLOUDINARY_CLOUD_NAME"
-  value          = var.cloudinary_cloud_name
-}
-
-resource "railway_variable" "cloudinary_api_key" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
-  name           = "CLOUDINARY_API_KEY"
-  value          = var.cloudinary_api_key
-}
-
-resource "railway_variable" "cloudinary_api_secret" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
-  name           = "CLOUDINARY_API_SECRET"
-  value          = var.cloudinary_api_secret
-}
-
-resource "railway_variable" "node_env" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
+resource "railway_variable" "NODE_ENV" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
   name           = "NODE_ENV"
-  value          = var.node_env
+  value          = var.NODE_ENV
 }
 
-resource "railway_variable" "database_url" {
-  service_id     = var.service_id
-  environment_id = var.environment_id
+resource "railway_variable" "APP_NAME" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
+  name           = "APP_NAME"
+  value          = var.APP_NAME
+}
+
+resource "railway_variable" "VERSION" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
+  name           = "APP_VERSION"
+  value          = var.APP_VERSION
+}
+
+resource "railway_variable" "AUTOR" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
+  name           = "AUTOR"
+  value          = var.AUTOR
+}
+
+resource "railway_variable" "APP_URL" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
+  name           = "APP_URL"
+  value          = var.APP_URL
+}
+
+resource "railway_variable" "JWT_SECRET" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
+  name           = "JWT_SECRET"
+  value          = var.JWT_SECRET
+}
+
+resource "railway_variable" "DATABASE_URL" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
   name           = "DATABASE_URL"
-  value          = var.database_url
+  value          = var.DATABASE_URL
+}
+
+resource "railway_variable" "CLOUDINARY_CLOUD_NAME" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
+  name           = "CLOUDINARY_CLOUD_NAME"
+  value          = var.CLOUDINARY_CLOUD_NAME
+}
+
+resource "railway_variable" "CLOUDINARY_API_KEY" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
+  name           = "CLOUDINARY_API_KEY"
+  value          = var.CLOUDINARY_API_KEY
+}
+
+resource "railway_variable" "CLOUDINARY_API_SECRET" {
+  service_id     = var.SERVICE_ID
+  environment_id = var.ENVIRONMENT_ID
+  name           = "CLOUDINARY_API_SECRET"
+  value          = var.CLOUDINARY_API_SECRET
 }
