@@ -7,12 +7,12 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    Documento_Cliente: {
-      type: DataTypes.STRING(20),
+    Id_Cliente: {
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: 'Clientes',
-        key: 'Documento_Cliente'
+        key: 'Id_Cliente'
       }
     },
     Total: {
@@ -31,7 +31,6 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     sequelize,
     tableName: 'Devoluciones',
-    hasTrigger: true,
     timestamps: false,
     indexes: [
       {
@@ -43,10 +42,10 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "Documento_Cliente",
+        name: "Id_Cliente",
         using: "BTREE",
         fields: [
-          { name: "Documento_Cliente" },
+          { name: "Id_Cliente" },
         ]
       },
     ]

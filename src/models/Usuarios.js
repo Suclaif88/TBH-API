@@ -1,10 +1,16 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('Usuarios', {
+    Id_Usuario: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true
+    },
     Documento: {
       type: DataTypes.STRING(20),
       allowNull: false,
-      primaryKey: true
+      unique: "Documento"
     },
     Password: {
       type: DataTypes.STRING(255),
@@ -12,7 +18,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     Correo: {
       type: DataTypes.STRING(100),
-      allowNull: false
+      allowNull: false,
+      unique: "Correo"
     },
     Estado: {
       type: DataTypes.BOOLEAN,
@@ -37,7 +44,23 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
+          { name: "Id_Usuario" },
+        ]
+      },
+      {
+        name: "Documento",
+        unique: true,
+        using: "BTREE",
+        fields: [
           { name: "Documento" },
+        ]
+      },
+      {
+        name: "Correo",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "Correo" },
         ]
       },
       {

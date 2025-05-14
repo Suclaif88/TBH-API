@@ -16,20 +16,20 @@ module.exports = function(sequelize, DataTypes) {
       },
       unique: "Ventas_ibfk_1"
     },
-    Documento_Cliente: {
-      type: DataTypes.STRING(20),
+    Id_Cliente: {
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: 'Clientes',
-        key: 'Documento_Cliente'
+        key: 'Id_Cliente'
       }
     },
-    Documento_Empleados: {
-      type: DataTypes.STRING(20),
+    Id_Empleados: {
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: 'Empleados',
-        key: 'Documento_Empleados'
+        key: 'Id_Empleados'
       }
     },
     Fecha: {
@@ -48,7 +48,6 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     sequelize,
     tableName: 'Ventas',
-    hasTrigger: true,
     timestamps: false,
     indexes: [
       {
@@ -68,17 +67,17 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "Documento_Cliente",
+        name: "Id_Cliente",
         using: "BTREE",
         fields: [
-          { name: "Documento_Cliente" },
+          { name: "Id_Cliente" },
         ]
       },
       {
-        name: "Documento_Empleados",
+        name: "Id_Empleados",
         using: "BTREE",
         fields: [
-          { name: "Documento_Empleados" },
+          { name: "Id_Empleados" },
         ]
       },
     ]

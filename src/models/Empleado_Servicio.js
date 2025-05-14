@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Novedades_Horarios', {
-    Id_Novedades_Horarios: {
+  return sequelize.define('Empleado_Servicio', {
+    Id_Empleado_Servicio: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -9,31 +9,23 @@ module.exports = function(sequelize, DataTypes) {
     },
     Id_Empleados: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'Empleados',
         key: 'Id_Empleados'
       }
     },
-    Fecha: {
-      type: DataTypes.DATEONLY,
-      allowNull: false
-    },
-    Hora_Inicio: {
-      type: DataTypes.TIME,
-      allowNull: false
-    },
-    Hora_Fin: {
-      type: DataTypes.TIME,
-      allowNull: false
-    },
-    Motivo: {
-      type: DataTypes.STRING(100),
-      allowNull: false
+    Id_Servicios: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Servicios',
+        key: 'Id_Servicios'
+      }
     }
   }, {
     sequelize,
-    tableName: 'Novedades_Horarios',
+    tableName: 'Empleado_Servicio',
     timestamps: false,
     indexes: [
       {
@@ -41,14 +33,23 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "Id_Novedades_Horarios" },
+          { name: "Id_Empleado_Servicio" },
         ]
       },
       {
         name: "Id_Empleados",
+        unique: true,
         using: "BTREE",
         fields: [
           { name: "Id_Empleados" },
+          { name: "Id_Servicios" },
+        ]
+      },
+      {
+        name: "Id_Servicios",
+        using: "BTREE",
+        fields: [
+          { name: "Id_Servicios" },
         ]
       },
     ]

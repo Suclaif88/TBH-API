@@ -31,6 +31,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.CHAR(10),
       allowNull: true
     },
+    Tipo_Documento: {
+      type: DataTypes.STRING(40),
+      allowNull: false
+    },
     Documento: {
       type: DataTypes.STRING(20),
       allowNull: true

@@ -38,7 +38,6 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     sequelize,
     tableName: 'Detalle_Compra_Insumos',
-    hasTrigger: true,
     timestamps: false,
     indexes: [
       {

@@ -7,20 +7,20 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    Documento_Cliente: {
-      type: DataTypes.STRING(10),
+    Id_Cliente: {
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: 'Clientes',
-        key: 'Documento_Cliente'
+        key: 'Id_Cliente'
       }
     },
-    Documento_Empleados: {
-      type: DataTypes.STRING(10),
+    Id_Empleados: {
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: 'Empleados',
-        key: 'Documento_Empleados'
+        key: 'Id_Empleados'
       }
     },
     Fecha: {
@@ -49,17 +49,17 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "Documento_Cliente",
+        name: "Id_Cliente",
         using: "BTREE",
         fields: [
-          { name: "Documento_Cliente" },
+          { name: "Id_Cliente" },
         ]
       },
       {
-        name: "Documento_Empleados",
+        name: "Id_Empleados",
         using: "BTREE",
         fields: [
-          { name: "Documento_Empleados" },
+          { name: "Id_Empleados" },
         ]
       },
     ]

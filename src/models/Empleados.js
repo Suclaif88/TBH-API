@@ -1,14 +1,16 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('Empleados', {
-    Documento_Empleados: {
+    Id_Empleados: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true
+    },
+    Documento: {
       type: DataTypes.STRING(20),
       allowNull: false,
-      primaryKey: true,
-      references: {
-        model: 'Usuarios',
-        key: 'Documento'
-      }
+      unique: "Documento"
     },
     Tipo_Documento: {
       type: DataTypes.STRING(40),
@@ -20,10 +22,6 @@ module.exports = function(sequelize, DataTypes) {
     },
     Celular: {
       type: DataTypes.STRING(15),
-      allowNull: false
-    },
-    Correo: {
-      type: DataTypes.STRING(100),
       allowNull: false
     },
     F_Nacimiento: {
@@ -53,7 +51,15 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "Documento_Empleados" },
+          { name: "Id_Empleados" },
+        ]
+      },
+      {
+        name: "Documento",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "Documento" },
         ]
       },
     ]
