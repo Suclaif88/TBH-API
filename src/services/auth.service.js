@@ -3,10 +3,11 @@ const generarToken = require('../utils/generarToken');
 const { Usuarios, Roles } = require('../models');
 
 exports.register = async (data) => {
-  const { Documento, Correo, Password } = data;
+  const { Documento, Correo, Password, Estado, Rol_Id } = data;
 
-  const rol_id = 2; // Asignar rol_id por defecto a 2 (Usuario)
-  const estado = 0; // Asignar estado por defecto a 0 (Inactivo)
+  const rolId = Rol_Id || 2; // Por defecto, rol usuario
+  const estado = Estado !== undefined ? Estado : 0; // Por defecto, inactivo (0)
+
 
   try {
     if (!Documento) {
@@ -27,7 +28,7 @@ exports.register = async (data) => {
       throw new Error('El correo ya está registrado');
     }
 
-    const rolExistente = await Roles.findByPk(rol_id);
+    const rolExistente = await Roles.findByPk(Rol_Id);
     if (!rolExistente) {
       throw new Error('Rol no encontrado');
     }
@@ -35,11 +36,11 @@ exports.register = async (data) => {
     const hashedPassword = await bcrypt.hash(Password, 10);
 
     const nuevoUsuario = await Usuarios.create({
-      Documento: Documento,
+      Documento,
       Password: hashedPassword,
-      Correo: Correo,
-      Estado: estado,
-      Rol_Id: rol_id,
+      Correo,
+      Estado,
+      Rol_Id,
     });
 
     const token = generarToken(nuevoUsuario);

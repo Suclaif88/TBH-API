@@ -1,7 +1,7 @@
 const authService = require('../services/auth.service');
 
 exports.register = async (req, res) => {
-  const { Documento, Correo, Password } = req.body;
+  const { Documento, Correo } = req.body;
 
   if (!Documento) {
     return res.status(400).json({ 
@@ -20,7 +20,7 @@ exports.register = async (req, res) => {
   }
 
   try {
-    const response = await authService.register({ Documento, Correo, Password });
+    const response = await authService.register(req.body); // 👈 Cambiado aquí
 
     if (response.status && response.data) {
       return res.status(response.status).json({
@@ -41,6 +41,7 @@ exports.register = async (req, res) => {
     });
   }
 };
+
 
 exports.login = async (req, res) => {
   const { Documento, Correo, Password } = req.body;
