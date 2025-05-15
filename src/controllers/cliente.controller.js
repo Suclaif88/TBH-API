@@ -9,6 +9,7 @@ exports.crearCliente = async (req, res) => {
   }
 };
 
+
 exports.listarCliente = async (req, res) => {
   try {
     const clientes = await Clientes.findAll();
@@ -18,27 +19,29 @@ exports.listarCliente = async (req, res) => {
   }
 };
 
-exports.listarClienteDocumento = async (req, res) => {
+
+exports.listarClientePorId = async (req, res) => {
   try {
-    const { documento_cliente } = req.params;
-    const cliente = await Clientes.findByPk(documento_cliente);
+    const { id_cliente } = req.params;
+    const cliente = await Clientes.findByPk(id_cliente);
     if (!cliente) {
       return res.status(404).json({ status: 'error', message: 'Cliente no encontrado' });
     }
-    res.json({ status: 'success', data: cliente }); // ← corregido
+    res.json({ status: 'success', data: cliente });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
+
 exports.actualizarCliente = async (req, res) => {
   try {
-    const { documento_cliente } = req.params;
-    const cliente = await Clientes.findOne({ where: { Documento_Cliente: documento_cliente } });
+    const { id_cliente } = req.params;
+    const cliente = await Clientes.findByPk(id_cliente);
     if (!cliente) {
       return res.status(404).json({ status: 'error', message: 'Cliente no encontrado' });
     }
-    await Clientes.update(req.body, { where: { Documento_Cliente: documento_cliente } });
+    await Clientes.update(req.body, { where: { Id_Cliente: id_cliente } });
     res.json({ status: 'success', message: 'Cliente actualizado' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
@@ -47,12 +50,12 @@ exports.actualizarCliente = async (req, res) => {
 
 exports.eliminarCliente = async (req, res) => {
   try {
-    const { documento_cliente } = req.params;
-    const cliente = await Clientes.findOne({ where: { Documento_Cliente: documento_cliente } });
+    const { id_cliente } = req.params;
+    const cliente = await Clientes.findByPk(id_cliente);
     if (!cliente) {
       return res.status(404).json({ status: 'error', message: 'Cliente no encontrado' });
     }
-    await Clientes.destroy({ where: { Documento_Cliente: documento_cliente } });
+    await Clientes.destroy({ where: { Id_Cliente: id_cliente } });
     res.json({ status: 'success', message: 'Cliente eliminado' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
