@@ -25,8 +25,10 @@ module.exports = function(sequelize, DataTypes) {
     },
     Stock: {
       type: DataTypes.INTEGER,
-      allowNull: false
-    }
+      allowNull: false,
+      defaultValue: 0
+}
+
   }, {
     sequelize,
     tableName: 'Producto_Tallas',

@@ -6,7 +6,8 @@ const {
   actualizarCategoria,
   obtenerCategoriasRopa,
   obtenerCategoriasNoRopa,
-  eliminarCategoria
+  eliminarCategoria,
+  cambiarEstadoCategoria
 } = require('../controllers/categoriaProducto.controller');
 const verificarToken = require('../middleware/authMiddleware');
 
@@ -21,5 +22,7 @@ router.get('/:id', obtenerCategoriaPorId);
 router.post('/', crearCategoria);
 router.put('/:id', actualizarCategoria);
 router.delete('/:id', eliminarCategoria);
+router.put('/estado/:id', cambiarEstadoCategoria);
+
 
 module.exports = router;
