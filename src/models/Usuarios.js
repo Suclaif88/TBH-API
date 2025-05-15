@@ -24,11 +24,12 @@ module.exports = function(sequelize, DataTypes) {
     Estado: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: 1
+      defaultValue: 0
     },
     Rol_Id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 2,
       references: {
         model: 'Roles',
         key: 'Id'

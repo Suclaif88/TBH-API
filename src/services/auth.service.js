@@ -5,10 +5,6 @@ const { Usuarios, Roles } = require('../models');
 exports.register = async (data) => {
   const { Documento, Correo, Password, Estado, Rol_Id } = data;
 
-  const rolId = Rol_Id || 2; // Por defecto, rol usuario
-  const estado = Estado !== undefined ? Estado : 0; // Por defecto, inactivo (0)
-
-
   try {
     if (!Documento) {
       throw new Error('El campo documento es obligatorio');
@@ -26,11 +22,6 @@ exports.register = async (data) => {
 
     if (usuarioExistenteCorreo) {
       throw new Error('El correo ya está registrado');
-    }
-
-    const rolExistente = await Roles.findByPk(Rol_Id);
-    if (!rolExistente) {
-      throw new Error('Rol no encontrado');
     }
 
     const hashedPassword = await bcrypt.hash(Password, 10);
