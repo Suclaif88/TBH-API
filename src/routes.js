@@ -16,6 +16,7 @@ const devolucionesRoutes = require('./routes/devoluciones.routes.js')
 
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
 const ProductosRoutes = require('./routes/productos.routes.js');
+const ProductoImagenRoutes = require('./routes/producto-imagen.routes.js')
 const tallasRoutes = require('./routes/tallas.routes.js')
 const ImagenesRoutes = require('./routes/imagenes.routes.js')
 const correoRoutes = require('./routes/correo.routes.js')
@@ -23,7 +24,10 @@ const correoRoutes = require('./routes/correo.routes.js')
 
 router.use('/auth', authRoutes);
 router.use('/insumos', insumoRoutes);
+
 router.use('/productos', ProductosRoutes);
+router.use('/producto-imagen', ProductoImagenRoutes);
+
 router.use('/tallas', tallasRoutes);
 router.use('/categoria-producto', categoriaProductosRoutes);
 router.use('/categoria-insumo', categoriaInsumoRoutes);

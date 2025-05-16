@@ -13,7 +13,8 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'Productos',
         key: 'Id_Productos'
-      }
+      },
+      onDelete: 'CASCADE' // <--- IMPORTANTE
     },
     Id_Imagenes: {
       type: DataTypes.INTEGER,
@@ -21,7 +22,8 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'Imagenes',
         key: 'Id_Imagenes'
-      }
+      },
+      onDelete: 'CASCADE' // <--- IMPORTANTE
     }
   }, {
     sequelize,
