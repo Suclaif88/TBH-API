@@ -1,4 +1,4 @@
-const { Categoria_Productos } = require('../models');
+const { Categoria_Productos, Tallas } = require('../models');
 
 
 // Obtener todas las categorías (sin importar el estado)
@@ -57,22 +57,45 @@ exports.actualizarCategoria = async (req, res) => {
 };
 
 // Eliminar (lógicamente) una categoría
+// Eliminar físicamente una categoría
 exports.eliminarCategoria = async (req, res) => {
   try {
     const id = req.params.id;
-    const [updated] = await Categoria_Productos.update({ Estado: false }, {
-      where: { Id_Categoria_Producto: id }
-    });
 
-    if (updated) {
-      res.json({ mensaje: 'Categoría desactivada correctamente' });
-    } else {
-      res.status(404).json({ error: 'Categoría no encontrada' });
+    const categoria = await Categoria_Productos.findByPk(id);
+    if (!categoria) {
+      return res.status(404).json({ error: 'Categoría no encontrada' });
     }
+
+    await categoria.destroy();
+    res.json({ mensaje: 'Categoría eliminada permanentemente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar la categoría' });
   }
 };
+
+// Cambiar el estado de una categoría (activar o desactivar)
+exports.cambiarEstadoCategoria = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const categoria = await Categoria_Productos.findByPk(id);
+    if (!categoria) {
+      return res.status(404).json({ error: 'Categoría no encontrada' });
+    }
+
+    categoria.Estado = !categoria.Estado;
+    await categoria.save();
+
+    res.json({
+      mensaje: `Categoría ${categoria.Estado ? 'activada' : 'desactivada'} correctamente`,
+      categoria
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al cambiar el estado de la categoría' });
+  }
+};
+
 
 // Obtener categorías que SÍ son ropa
 exports.obtenerCategoriasRopa = async (req, res) => {
@@ -102,4 +125,4 @@ exports.obtenerCategoriasNoRopa = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener categorías que no son de ropa' });
   }
-};
+}

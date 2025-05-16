@@ -17,7 +17,7 @@ const subirMultiplesImagenes = async (req, res) => {
       fs.writeFileSync(tempFilePath, file.buffer);
 
       const resultado = await cloudinary.uploader.upload(tempFilePath, {
-        folder: "productos",
+        folder: "imagenes",
         format: "webp"
       });
 
@@ -67,7 +67,7 @@ const eliminarMultiplesImagenes = async (req, res) => {
       if (imagen) {
         const urlParts = imagen.URL.split('/');
         const fileName = urlParts[urlParts.length - 1];
-        const publicId = `productos/${fileName.split('.')[0]}`;
+        const publicId = `imagenes/${fileName.split('.')[0]}`;
 
         await cloudinary.uploader.destroy(publicId);
         await imagen.destroy();
