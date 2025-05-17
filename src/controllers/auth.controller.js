@@ -66,7 +66,7 @@ exports.login = async (req, res) => {
     if (response.status === 200 && response.data?.token) {
       res.cookie("token", response.data.token, {
         httpOnly: true,
-        secure: false, // Cambia a true en producción con HTTPS
+        secure: false, // Cambiar a true en producción
         sameSite: 'Lax',
         maxAge: 60 * 60 * 1000 
       });
