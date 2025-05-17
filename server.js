@@ -7,6 +7,7 @@ const routes = require("./src/routes");
 const favicon = require("serve-favicon");
 const path = require("path");
 const ora = require("ora");
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const AUTOR = process.env.AUTOR || "SRD";
@@ -27,11 +28,12 @@ const iniciarServidor = async () => {
         spinnerUrl.succeed(`Servidor corriendo en ${APP_URL}:${PORT}`);
       }, 5000);
     }, 5500);
-    
+
     app.set('trust proxy', 1);
     app.use(cors());
     app.use(limiter);
     app.use(express.json());
+    app.use(cookieParser());
     app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
     app.get("/", (req, res) => {
@@ -53,4 +55,4 @@ const iniciarServidor = async () => {
 
 iniciarServidor();
 
-//ESTE ARCHIVO NO SE TOCA
+// ESTE ARCHIVO NO SE TOCA
