@@ -74,10 +74,13 @@ exports.register = async (data) => {
   
       const token = generarToken(usuario);
   
+      const usuarioLimpio = { ...usuario.get() };
+      delete usuarioLimpio.Password;
+
       return {
         status: 200,
         data: {
-          usuario,
+          usuario: usuarioLimpio,
           token,
         },
       };

@@ -45,6 +45,8 @@ const iniciarServidor = async () => {
 
     app.use("/api", routes);
 
+    const cookieParser = require("cookie-parser");
+    app.use(cookieParser());
     app.listen(PORT);
   } else {
     spinner.fail("Error al conectar con la base de datos. El servidor no se iniciará :(");

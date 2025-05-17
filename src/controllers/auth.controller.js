@@ -20,7 +20,7 @@ exports.register = async (req, res) => {
   }
 
   try {
-    const response = await authService.register(req.body); // 👈 Cambiado aquí
+    const response = await authService.register(req.body); 
 
     if (response.status && response.data) {
       return res.status(response.status).json({
@@ -63,10 +63,25 @@ exports.login = async (req, res) => {
   try {
     const response = await authService.login({ Documento, Correo, Password });
 
-    return res.status(response.status).json({
-      status: 'success',
-      data: response.data
-    });
+    if (response.status === 200 && response.data?.token) {
+      res.cookie("token", response.data.token, {
+        httpOnly: true,
+        secure: false, // Cambia a true en producción con HTTPS
+        sameSite: 'Lax',
+        maxAge: 60 * 60 * 1000 
+      });
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Login exitoso',
+        usuario: response.data.usuario
+      });
+    } else {
+      return res.status(response.status || 500).json({
+        status: 'error',
+        message: 'No se pudo iniciar sesión correctamente'
+      });
+    }
   } catch (error) {
     return res.status(401).json({
       status: 'error',
