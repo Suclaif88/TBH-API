@@ -60,3 +60,23 @@ try {
 }
 };
 
+exports.cambiarEstadoProducto = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const producto = await Productos.findByPk(id);
+    if (!producto) {
+      return res.status(404).json({ error: 'Producto no Encontrado' });
+    }
+
+    producto.Estado = !producto.Estado;
+    await producto.save();
+
+    res.json({
+      mensaje: `Producto ${producto.Estado ? 'activado' : 'desactivado'} correctamente`,
+      producto
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al Cambiar el Estado del Producto' });
+  }
+};
