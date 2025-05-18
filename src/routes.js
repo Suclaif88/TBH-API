@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.js');
+const meRoutes = require('./routes/me.routes'); 
+const logout = require('./routes/logout.routes.js')
 const authRoutes = require('./routes/auth.routes');
 const insumoRoutes = require('./routes/insumo.routes.js');
 const categoriaInsumoRoutes = require('./routes/categoriaInsumo.routes');
@@ -23,6 +25,8 @@ const correoRoutes = require('./routes/correo.routes.js')
 
 
 router.use('/auth', authRoutes);
+router.use('/me', meRoutes);   
+router.use('/logout', logout)
 router.use('/insumos', insumoRoutes);
 
 router.use('/productos', ProductosRoutes);
