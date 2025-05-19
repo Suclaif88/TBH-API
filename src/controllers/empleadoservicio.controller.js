@@ -11,7 +11,7 @@ exports.ListarServiciosEmpleados = async(req,res)=>{
 exports.ServiciosEmpleadosId = async(req,res)=>{
     try{
         const {id} = req.params;
-        const serviciosempleados = await Empleado_Servicio.findByPk();
+        const serviciosempleados = await Empleado_Servicio.findByPk(id);
 
         if(!serviciosempleados){
             return res.status(404).json({status:'error', message: 'Servicio De Empleado no encontrado'})
