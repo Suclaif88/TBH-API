@@ -13,6 +13,9 @@ const Permisos = require('./routes/permisos.routes.js');
 const usuariosRoutes = require('./routes/usuario.routes.js');
 const empleadosRoutes = require('./routes/empleados.routes.js')
 const devolucionesRoutes = require('./routes/devoluciones.routes.js')
+const agendamientoRoutes= require('./routes/agendamiento.routes.js')
+const serviciosRoutes= require ('./routes/servicios.routes.js' )
+const novedadesRoutes= require ('./routes/novedades.routes.js')
 
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
 const ProductosRoutes = require('./routes/productos.routes.js');
@@ -33,6 +36,10 @@ router.use('/usuarios', usuariosRoutes);
 router.use('/empleados',empleadosRoutes);
 router.use('/devoluciones',devolucionesRoutes);
 router.use('/clientes', clientesRoutes);
+router.use('/agendamiento', agendamientoRoutes);
+router.use('/servicios', serviciosRoutes);
+router.use('/novedades', novedadesRoutes)
+
 
 router.use('/imagenes', ImagenesRoutes);
 
