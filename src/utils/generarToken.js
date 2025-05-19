@@ -1,9 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const generarToken = (usuario) => {
-  console.log('Usuario recibido en generarToken:', usuario);
   const data = usuario?.get ? usuario.get() : usuario;
-  console.log('Datos usados para firmar el token:', data);
 
   const token = jwt.sign(
     {
@@ -16,7 +14,6 @@ const generarToken = (usuario) => {
     { expiresIn: '1h' }
   );
 
-  console.log('Token generado:', token);
   return token;
 };
 
