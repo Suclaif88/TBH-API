@@ -13,19 +13,21 @@ const rolesRoutes = require('./routes/roles.routes');
 const rolesPermisosRoutes = require('./routes/rolesPermisos.routes.js');
 const Permisos = require('./routes/permisos.routes.js');
 const usuariosRoutes = require('./routes/usuario.routes.js');
-const empleadosRoutes = require('./routes/empleados.routes.js')
-const devolucionesRoutes = require('./routes/devoluciones.routes.js')
-const agendamientoRoutes= require('./routes/agendamiento.routes.js')
-const serviciosRoutes= require ('./routes/servicios.routes.js' )
-const novedadesRoutes= require ('./routes/novedades.routes.js')
+const empleadosRoutes = require('./routes/empleados.routes.js');
+const devolucionesRoutes = require('./routes/devoluciones.routes.js');
+const agendamientoRoutes= require('./routes/agendamiento.routes.js');
+const serviciosRoutes= require ('./routes/servicios.routes.js' );
+const novedadesRoutes= require ('./routes/novedades.routes.js');
 
+const comprasRoutes = require ('./routes/compras.routes.js');
+const proveedoresRoutes = require('./routes/proveedores.routes.js');
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
 const ProductosRoutes = require('./routes/productos.routes.js');
-const ProductoImagenRoutes = require('./routes/producto-imagen.routes.js')
-const tallasRoutes = require('./routes/tallas.routes.js')
-const tamanoRoutes = require('./routes/tamano.routes.js')
-const ImagenesRoutes = require('./routes/imagenes.routes.js')
-const correoRoutes = require('./routes/correo.routes.js')
+const ProductoImagenRoutes = require('./routes/producto-imagen.routes.js');
+const tallasRoutes = require('./routes/tallas.routes.js');
+const tamanoRoutes = require('./routes/tamano.routes.js');
+const ImagenesRoutes = require('./routes/imagenes.routes.js');
+const correoRoutes = require('./routes/correo.routes.js');
 
 
 router.use('/auth', authRoutes);
@@ -33,6 +35,8 @@ router.use('/me', meRoutes);
 router.use('/logout', logout)
 router.use('/insumos', insumoRoutes);
 
+router.use ('/compras', comprasRoutes)
+router.use('/proveedores', proveedoresRoutes);
 router.use('/productos', ProductosRoutes);
 router.use('/producto-imagen', ProductoImagenRoutes);
 

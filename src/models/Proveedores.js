@@ -33,7 +33,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     Tipo_Documento: {
       type: DataTypes.STRING(40),
-      allowNull: false
+      allowNull: true
     },
     Documento: {
       type: DataTypes.STRING(20),

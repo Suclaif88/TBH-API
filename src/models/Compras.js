@@ -17,10 +17,12 @@ module.exports = function(sequelize, DataTypes) {
     },
     Fecha: {
       type: DataTypes.DATEONLY,
+      defaultValue: DataTypes.NOW,
       allowNull: false
     },
     Total: {
       type: DataTypes.DECIMAL(10,2),
+      defaultValue: 0.0,
       allowNull: false
     },
     Estado: {
