@@ -37,7 +37,7 @@ exports.crearTalla = async (req, res) => {
   }
 };
 
-// Actualizar una categoría
+// Actualizar una Talla
 exports.actualizarTalla = async (req, res) => {
   try {
     const id = req.params.id;
@@ -56,7 +56,7 @@ exports.actualizarTalla = async (req, res) => {
   }
 };
 
-// Eliminar físicamente una Talla
+// Eliminar una Talla
 exports.eliminarTalla = async (req, res) => {
   try {
     const id = req.params.id;
