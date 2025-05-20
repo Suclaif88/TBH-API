@@ -5,10 +5,9 @@ exports.crearCompra = async (req, res) => {
   try {
     const nuevaCompra = await Compras.create(req.body)
 
-    res.status(201).json(nuevaCompra);
+    res.json({ status: 'success', data: nuevaCompra });
   } catch (error) {
-    console.error("Error al crear compra:", error);
-    res.status(500).json({ error: "Error al crear la compra." });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -16,10 +15,9 @@ exports.crearCompra = async (req, res) => {
 exports.obtenerCompras = async (req, res) => {
   try {
     const compras = await Compras.findAll();
-    res.status(200).json(compras);
+    res.json({ status: 'success', data: compras });
   } catch (error) {
-    console.error("Error al obtener compras:", error);
-    res.status(500).json({ error: "Error al obtener las compras." });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -30,13 +28,12 @@ exports.obtenerCompraPorId = async (req, res) => {
     const compra = await Compras.findByPk(id);
 
     if (!compra) {
-      return res.status(404).json({ error: "Compra no encontrada." });
+      res.status(404).json({ status:'error', message: "Compra no encontrada." });
     }
 
-    res.status(200).json(compra);
+    res.json({ status: 'success', data: compra });
   } catch (error) {
-    console.error("Error al obtener compra:", error);
-    res.status(500).json({ error: "Error al obtener la compra." });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -48,12 +45,16 @@ exports.cambiarEstadoCompra = async (req, res) => {
     const compra = await Compras.findByPk(id);
 
     if (!compra) {
-      return res.status(404).json({ error: "Compra no encontrada." });
+      res.status(404).json({ 
+        status:'error', 
+        message: "Compra no encontrada." 
+      });
     }
 
     if (compra.Estado === false) {
       return res.status(400).json({
-        error: "La compra ya está inactiva. No se puede volver a activar."
+        status:'error', 
+        message: "La compra ya está inactiva. No se puede volver a activar."
       });
     }
 
@@ -61,13 +62,13 @@ exports.cambiarEstadoCompra = async (req, res) => {
     await compra.save();
 
     res.status(200).json({
+      status: 'success',
       mensaje: "Compra desactivada correctamente.",
       compra
     });
 
   } catch (error) {
-    console.error("Error al cambiar estado de compra:", error);
-    res.status(500).json({ error: "Error al cambiar el estado de la compra." });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 

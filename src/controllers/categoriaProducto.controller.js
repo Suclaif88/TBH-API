@@ -5,9 +5,9 @@ const { Categoria_Productos, Productos } = require('../models');
 exports.obtenerCategorias = async (req, res) => {
   try {
     const categorias = await Categoria_Productos.findAll();
-    res.json(categorias);
+    res.json({ status: 'success', data: categorias });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener categorías' });
+    es.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -17,12 +17,12 @@ exports.obtenerCategoriaPorId = async (req, res) => {
   try {
     const categoria = await Categoria_Productos.findByPk(req.params.id);
     if (categoria) {
-      res.json(categoria);
+      res.json({ status: 'success', data: categoria });
     } else {
-      res.status(404).json({ error: 'Categoría no encontrada' });
+      res.status(404).json({ status: 'error', message: 'Categoria no encontrado' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener la categoría' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -30,10 +30,9 @@ exports.obtenerCategoriaPorId = async (req, res) => {
 exports.crearCategoria = async (req, res) => {
   try {
     const nuevaCategoria = await Categoria_Productos.create(req.body);
-    res.status(201).json(nuevaCategoria);
+    res.json({ status: 'success', data: nuevaCategoria });
   } catch (error) {
-    console.log(error);
-    res.status(400).json({ error: 'Error al crear categoría', detalles: error });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -47,12 +46,12 @@ exports.actualizarCategoria = async (req, res) => {
 
     if (updated) {
       const categoriaActualizada = await Categoria_Productos.findByPk(id);
-      res.json(categoriaActualizada);
+      res.json({ status: 'success', data: categoriaActualizada });
     } else {
-      res.status(404).json({ error: 'Categoría no encontrada' });
+      res.status(404).json({ status: 'error', message: 'Categoria no encontrada' });
     }
   } catch (error) {
-    res.status(400).json({ error: 'Error al actualizar categoría', detalles: error });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -63,11 +62,11 @@ exports.eliminarCategoria = async (req, res) => {
   const productos = await Productos.findOne({ where: { Id_Categoria_Producto: id } });
 
   if (productos) {
-    return res.status(400).json({ error: "No se Puede Eliminar: La Categoria tiene Productos registrados." });
+    res.status(400).json({ status: 'Error', message: "No se Puede Eliminar: La Categoria tiene Productos registrados." });
   }
 
-  await Categoria_Productos.destroy({ where: { id } });
-  return res.json({ mensaje: "Categoria eliminada correctamente." });
+  await Categoria_Productos.destroy({ where: { Id_Categoria_Producto: id } });
+  res.json({ status: 'success', mensaje: "Categoria eliminada correctamente." });
 };
 
 // Cambiar el estado de una categoría (activar o desactivar)
@@ -77,18 +76,19 @@ exports.cambiarEstadoCategoria = async (req, res) => {
 
     const categoria = await Categoria_Productos.findByPk(id);
     if (!categoria) {
-      return res.status(404).json({ error: 'Categoría no encontrada' });
+      res.status(404).json({ status: 'Error', message: 'Categoría no encontrada' });
     }
 
     categoria.Estado = !categoria.Estado;
     await categoria.save();
 
     res.json({
+      status: 'success',
       mensaje: `Categoría ${categoria.Estado ? 'activada' : 'desactivada'} correctamente`,
       categoria
     });
   } catch (error) {
-    res.status(500).json({ error: 'Error al cambiar el estado de la categoría' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -102,9 +102,9 @@ exports.obtenerCategoriasRopa = async (req, res) => {
         Estado: true
       }
     });
-    res.json(categoriasRopa);
+    res.json({ status: 'success', data: categoriasRopa });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener categorías de ropa' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -117,8 +117,8 @@ exports.obtenerCategoriasNoRopa = async (req, res) => {
         Estado: true
       }
     });
-    res.json(categoriasNoRopa);
+    res.json({ status: 'success', data: categoriasNoRopa });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener categorías que no son de ropa' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 }

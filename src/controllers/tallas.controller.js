@@ -5,9 +5,9 @@ const { Tallas } = require('../models');
 exports.obtenerTallas = async (req, res) => {
   try {
     const tallas = await Tallas.findAll();
-    res.json(tallas);
+    res.json({ status: 'success', data: tallas });
   } catch (error) {
-    res.status(500).json({ error: 'Error al Obtener las Tallas' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -17,12 +17,12 @@ exports.obtenerTallaPorId = async (req, res) => {
   try {
     const talla = await Tallas.findByPk(req.params.id);
     if (talla) {
-      res.json(talla);
+      res.json({ status: 'success', data: talla });
     } else {
-      res.status(404).json({ error: 'Talla no Encontrada' });
+      res.status(404).json({ status: 'error', message: 'Talla no Encontrada' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Error al Obtener la Talla' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -30,10 +30,9 @@ exports.obtenerTallaPorId = async (req, res) => {
 exports.crearTalla = async (req, res) => {
   try {
     const nuevaTalla = await Tallas.create(req.body);
-    res.status(201).json(nuevaTalla);
+    res.json({ status: 'success', data: nuevaTalla });
   } catch (error) {
-    console.log(error);
-    res.status(400).json({ error: 'Error al crear la Talla', detalles: error });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -47,12 +46,12 @@ exports.actualizarTalla = async (req, res) => {
 
     if (updated) {
       const tallaActualizada = await Tallas.findByPk(id);
-      res.json(tallaActualizada);
+      res.json({ status: 'success', data: tallaActualizada });
     } else {
-      res.status(404).json({ error: 'Talla no encontrada' });
+      res.status(404).json({ status: 'error', message: 'Talla no encontrada' });
     }
   } catch (error) {
-    res.status(400).json({ error: 'Error al Actualizar Talla', detalles: error });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -63,13 +62,13 @@ exports.eliminarTalla = async (req, res) => {
 
     const talla = await Tallas.findByPk(id);
     if (!talla) {
-      return res.status(404).json({ error: 'Talla no Encontrada' });
+      return res.status(404).json({ status: 'error', message: 'Talla no Encontrada' });
     }
 
     await talla.destroy();
-    res.json({ mensaje: 'Talla Eliminada Permanentemente' });
+    res.json({ status: 'Succes', mensaje: 'Talla Eliminada Permanentemente' });
   } catch (error) {
-    res.status(500).json({ error: 'Error al Eliminar la Talla' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -80,18 +79,19 @@ exports.cambiarEstadoTalla = async (req, res) => {
 
     const talla = await Tallas.findByPk(id);
     if (!talla) {
-      return res.status(404).json({ error: 'Talla no Encontrada' });
+      return res.status(404).json({ status: 'error', message: 'Talla no Encontrada' });
     }
 
     talla.Estado = !talla.Estado;
     await talla.save();
 
     res.json({
+      status: 'success',
       mensaje: `Talla ${talla.Estado ? 'activada' : 'desactivada'} correctamente`,
       talla
     });
   } catch (error) {
-    res.status(500).json({ error: 'Error al Cambiar el Estado de la Talla' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 

@@ -4,10 +4,10 @@ const { Tamano } = require('../models');
 // Obtener todos los Tamaños 
 exports.obtenerTamanos = async (req, res) => {
 try {
-    const tamano = await Tamano.findAll();
-    res.json(tamano);
+    const tamanos = await Tamano.findAll();
+    res.json({ status: 'success', data: tamanos });
 } catch (error) {
-    res.status(500).json({ error: 'Error al Obtener los Tamaños' });
+    res.status(500).json({ status: 'error', message: error.message });
 }
 };
 
@@ -17,12 +17,12 @@ exports.obtenerTamanoPorId = async (req, res) => {
 try {
     const tamano = await Tamano.findByPk(req.params.id);
     if (tamano) {
-    res.json(tamano);
+        res.json({ status: 'success', data: tamano });
     } else {
-    res.status(404).json({ error: 'Tamaño no Encontrado' });
+        res.status(404).json({ status:'error', message: 'Tamaño no Encontrado' });
     }
 } catch (error) {
-    res.status(500).json({ error: 'Error al Obtener el Tamaño' });
+    res.status(500).json({ status: 'error', message: error.message });
 }
 };
 
@@ -31,10 +31,9 @@ try {
 exports.crearTamano = async (req, res) => {
 try {
     const nuevoTamano = await Tamano.create(req.body);
-    res.status(201).json(nuevoTamano);
+    res.json({ status: 'success', data: nuevoTamano });
 } catch (error) {
-    console.log(error);
-    res.status(400).json({ error: 'Error al crear el Tamaño', detalles: error });
+    res.status(500).json({ status: 'error', message: error.message });
 }
 };
 
@@ -47,13 +46,13 @@ try {
     });
 
     if (updated) {
-    const tamanoActualizado = await Tamano.findByPk(id);
-    res.json(tamanoActualizado);
+        const tamanoActualizado = await Tamano.findByPk(id);
+        res.json({ status: 'success', data: tamanoActualizado });
     } else {
-    res.status(404).json({ error: 'Tamaño no encontrado' });
+    res.status(404).json({ status:'error', message: 'Tamaño no encontrado' });
     }
 } catch (error) {
-    res.status(400).json({ error: 'Error al Actualizar el Tamaño', detalles: error });
+    res.status(500).json({ status: 'error', message: error.message });
 }
 };
 
@@ -64,13 +63,13 @@ try {
 
     const tamano = await Tamano.findByPk(id);
     if (!tamano) {
-    return res.status(404).json({ error: 'Tamaño no Encontrado' });
+    return res.status(404).json({ status:'error', message: 'Tamaño no Encontrado' });
     }
 
     await tamano.destroy();
-    res.json({ mensaje: 'Tamaño Eliminado Permanentemente' });
+    res.json({ status:'success', mensaje: 'Tamaño Eliminado Permanentemente' });
 } catch (error) {
-    res.status(500).json({ error: 'Error al Eliminar el Tamaño' });
+    res.status(500).json({ status: 'error', message: error.message });
 }
 };
 
@@ -81,18 +80,18 @@ try {
 
     const tamano = await Tamano.findByPk(id);
     if (!tamano) {
-    return res.status(404).json({ error: 'Tamaño no Encontrado' });
+    return res.status(404).json({ status:'error', message: 'Tamaño no Encontrado' });
     }
 
     tamano.Estado = !tamano.Estado;
     await tamano.save();
 
     res.json({
-    mensaje: `Tamaño ${tamano.Estado ? 'activado' : 'desactivado'} correctamente`,
-    tamano
+        status: 'success',
+        mensaje: `Tamaño ${tamano.Estado ? 'activado' : 'desactivado'} correctamente`, tamano
     });
 } catch (error) {
-    res.status(500).json({ error: 'Error al Cambiar el Estado del Tamaño' });
+    res.status(500).json({ status: 'error', message: error.message });
 }
 };
 
@@ -104,8 +103,8 @@ try {
         Estado: true
     }
     });
-    res.json(tamanosActivos);
+    res.json({ status: 'success', data: tamanosActivos });
 } catch (error) {
-    res.status(500).json({ error: 'Error al obtener Tamaños Activos' });
+    res.status(500).json({ status: 'error', message: error.message });
 }
 };
