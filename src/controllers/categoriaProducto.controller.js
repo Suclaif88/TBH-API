@@ -1,4 +1,4 @@
-const { Categoria_Productos, Tallas } = require('../models');
+const { Categoria_Productos, Productos } = require('../models');
 
 
 // Obtener todas las categorías (sin importar el estado)
@@ -56,22 +56,18 @@ exports.actualizarCategoria = async (req, res) => {
   }
 };
 
-// Eliminar (lógicamente) una categoría
-// Eliminar físicamente una categoría
+// Eliminar una Categoria
 exports.eliminarCategoria = async (req, res) => {
-  try {
-    const id = req.params.id;
+  const id = req.params.id;
 
-    const categoria = await Categoria_Productos.findByPk(id);
-    if (!categoria) {
-      return res.status(404).json({ error: 'Categoría no encontrada' });
-    }
+  const productos = await Productos.findOne({ where: { Id_Categoria_Producto: id } });
 
-    await categoria.destroy();
-    res.json({ mensaje: 'Categoría eliminada permanentemente' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar la categoría' });
+  if (productos) {
+    return res.status(400).json({ error: "No se Puede Eliminar: La Categoria tiene Productos registrados." });
   }
+
+  await Categoria_Productos.destroy({ where: { id } });
+  return res.json({ mensaje: "Categoria eliminada correctamente." });
 };
 
 // Cambiar el estado de una categoría (activar o desactivar)
