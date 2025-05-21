@@ -5,9 +5,9 @@ const { Proveedores, Compras } = require('../models');
 exports.obtenerProveedores = async (req, res) => {
   try {
     const proveedores = await Proveedores.findAll();
-    res.json(proveedores);
+    res.json({ status: 'success', data: proveedores });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener Proveedores' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -17,12 +17,12 @@ exports.obtenerProveedorPorId = async (req, res) => {
   try {
     const proveedor = await Proveedores.findByPk(req.params.id);
     if (proveedor) {
-      res.json(proveedor);
+      res.json({ status: 'success', data: proveedor });
     } else {
-      res.status(404).json({ error: 'Proveedor no encontrado' });
+      res.status(404).json({ status: 'error', message: 'Proveedor no encontrado' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener el Proveedor' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -34,9 +34,9 @@ try {
         Estado: true
     }
     });
-    res.json(proveedoresActivos);
+    res.json({ status: 'success', data: proveedoresActivos });
 } catch (error) {
-    res.status(500).json({ error: 'Error al obtener Proveedores Activos' });
+    res.status(404).json({ status: 'error', message: 'Error al obtener Proveedores Activos' });
 }
 };
 
@@ -44,10 +44,9 @@ try {
 exports.crearProveedor = async (req, res) => {
   try {
     const nuevoProveedor = await Proveedores.create(req.body);
-    res.status(201).json(nuevoProveedor);
+    res.json({ status: 'success', data: nuevoProveedor });
   } catch (error) {
-    console.log(error);
-    res.status(400).json({ error: 'Error al crear categoría', detalles: error });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -61,12 +60,12 @@ exports.actualizarProveedor = async (req, res) => {
 
     if (updated) {
       const proveedorActualizado = await Proveedores.findByPk(id);
-      res.json(proveedorActualizado);
+      res.json({ status: 'success', data: proveedorActualizado });
     } else {
-      res.status(404).json({ error: 'Proveedor no encontrado' });
+      res.status(404).json({ status: 'error', message: 'Proveedor no encontrado' });
     }
   } catch (error) {
-    res.status(400).json({ error: 'Error al actualizar Proveedor', detalles: error });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
@@ -77,11 +76,11 @@ exports.eliminarProveedor = async (req, res) => {
   const compras = await Compras.findOne({ where: { Id_Proveedores: id } });
 
   if (compras) {
-    return res.status(400).json({ error: "No se puede eliminar: el proveedor tiene compras registradas." });
+    return res.status(400).json({ status: 'error', message: "No se puede eliminar: el proveedor tiene compras registradas." });
   }
 
-  await Proveedor.destroy({ where: { id } });
-  return res.json({ mensaje: "Proveedor eliminado correctamente." });
+  await Proveedores.destroy({ where: { Id_Proveedores: id } });
+  res.json({ status: 'success', mensaje: "Proveedor eliminado correctamente." });
 };
 
 
@@ -92,18 +91,19 @@ exports.cambiarEstadoProveedor = async (req, res) => {
 
     const proveedor = await Proveedores.findByPk(id);
     if (!proveedor) {
-      return res.status(404).json({ error: 'Proveedor no encontrado' });
+      return res.status(404).json({ status: 'error', message: 'Proveedor no encontrado' });
     }
 
     proveedor.Estado = !proveedor.Estado;
     await proveedor.save();
 
     res.json({
+      status: 'success',
       mensaje: `Proveedor ${proveedor.Estado ? 'activado' : 'desactivado'} correctamente`,
       proveedor
     });
   } catch (error) {
-    res.status(500).json({ error: 'Error al cambiar el estado del Proveedor' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
