@@ -2,7 +2,7 @@ const { Router } = require('express');
 const {
     crearEmpleado,
     listarEmpleados, 
-    obtenerEmpleadoPorDocumento,
+    obtenerEmpleadoPorId, 
     actualizarEmpleado,
     eliminarEmpleado,
 } = require('../controllers/empleados.controller.js');
@@ -14,7 +14,7 @@ router.use(verificarToken);
 
 router.post('/', crearEmpleado);
 router.get('/', listarEmpleados);
-router.get('/:documento', obtenerEmpleadoPorDocumento);
+router.get('/:documento', obtenerEmpleadoPorId);
 router.put('/:documento', actualizarEmpleado);
 router.delete('/:documento', eliminarEmpleado);
 
