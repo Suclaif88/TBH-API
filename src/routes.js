@@ -21,6 +21,7 @@ const novedadesRoutes= require ('./routes/novedades.routes.js');
 
 const comprasRoutes = require ('./routes/compras.routes.js');
 const detallesCompraInsumosRoutes = require ('./routes/detalleCompraInsumos.routes.js');
+const detallesCompraProductosRoutes = require ('./routes/detalleCompraInsumos.routes.js');
 const proveedoresRoutes = require('./routes/proveedores.routes.js');
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
 const ProductosRoutes = require('./routes/productos.routes.js');
@@ -39,6 +40,8 @@ router.use('/insumos', insumoRoutes);
 
 router.use ('/compras', comprasRoutes);
 router.use ('/detalleCompraInsumos', detallesCompraInsumosRoutes);
+router.use ('/detalleCompraProductos', detallesCompraProductosRoutes);
+
 router.use('/proveedores', proveedoresRoutes);
 router.use('/productos', ProductosRoutes);
 router.use('/producto-imagen', ProductoImagenRoutes);
