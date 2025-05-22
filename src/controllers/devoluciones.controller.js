@@ -21,10 +21,12 @@ exports.listarDevoluciones = async (req, res) => {
 exports.obtenerDevolucionPorId = async (req, res) => {
   try {
     const { id } = req.params;
-    const devolucion = await Devoluciones.findByPk(id);
+    const devolucion = await Devoluciones.findOne({ where: { Id_Devoluciones: id } });
+
     if (!devolucion) {
       return res.status(404).json({ status: 'error', message: 'Devolución no encontrada' });
     }
+
     res.json({ status: 'success', data: devolucion });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
@@ -34,12 +36,13 @@ exports.obtenerDevolucionPorId = async (req, res) => {
 exports.actualizarDevolucion = async (req, res) => {
   try {
     const { id } = req.params;
-    const devolucion = await Devoluciones.findOne({ where: { Id_Devoluciones: id } });
-    if (!devolucion) {
-      return res.status(404).json({ status: 'error', message: 'Devolución no encontrada' });
+    const [updated] = await Devoluciones.update(req.body, { where: { Id_Devoluciones: id } });
+
+    if (updated === 0) {
+      return res.status(404).json({ status: 'error', message: 'Devolución no encontrada o sin cambios' });
     }
-    await Devoluciones.update(req.body, { where: { Id_Devoluciones: id } });
-    res.json({ status: 'success', message: 'Devolución actualizada' });
+
+    res.json({ status: 'success', message: 'Devolución actualizada correctamente' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
@@ -48,12 +51,13 @@ exports.actualizarDevolucion = async (req, res) => {
 exports.eliminarDevolucion = async (req, res) => {
   try {
     const { id } = req.params;
-    const devolucion = await Devoluciones.findOne({ where: { Id_Devoluciones: id } });
-    if (!devolucion) {
+    const deleted = await Devoluciones.destroy({ where: { Id_Devoluciones: id } });
+
+    if (deleted === 0) {
       return res.status(404).json({ status: 'error', message: 'Devolución no encontrada' });
     }
-    await Devoluciones.destroy({ where: { Id_Devoluciones: id } });
-    res.json({ status: 'success', message: 'Devolución eliminada' });
+
+    res.json({ status: 'success', message: 'Devolución eliminada correctamente' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }

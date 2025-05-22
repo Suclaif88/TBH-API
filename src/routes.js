@@ -28,7 +28,8 @@ const tallasRoutes = require('./routes/tallas.routes.js');
 const tamanoRoutes = require('./routes/tamano.routes.js');
 const ImagenesRoutes = require('./routes/imagenes.routes.js');
 const correoRoutes = require('./routes/correo.routes.js');
-
+const detalledevolucionesRoutes = require('./routes/detalleDevolucion.routes.js')
+const empleadoServicioRoutes = require ('./routes/empleadoServicio.routes.js')
 
 router.use('/auth', authRoutes);
 router.use('/me', meRoutes);   
@@ -55,7 +56,8 @@ router.use('/clientes', clientesRoutes);
 router.use('/agendamiento', agendamientoRoutes);
 router.use('/servicios', serviciosRoutes);
 router.use('/novedades', novedadesRoutes)
-
+router.use('/detalledevolucion',detalledevolucionesRoutes)
+router.use('/empleadoservicios', empleadoServicioRoutes)
 
 router.use('/imagenes', ImagenesRoutes);
 
