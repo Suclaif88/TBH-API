@@ -26,6 +26,19 @@ exports.obtenerCategoriaPorId = async (req, res) => {
   }
 };
 
+exports.obtenerCategoriasActivas = async (req, res) => {
+try {
+    const categoriasActivas = await Categoria_Productos.findAll({
+    where: {
+        Estado: true
+    }
+    });
+    res.json({ status: 'success', data: categoriasActivas });
+} catch (error) {
+    res.status(404).json({ status: 'error', message: 'Error al obtener Categorias Activas' });
+}
+};
+
 // Crear nueva categoría
 exports.crearCategoria = async (req, res) => {
   try {

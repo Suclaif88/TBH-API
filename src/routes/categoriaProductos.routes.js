@@ -2,6 +2,7 @@ const { Router } = require('express');
 const {
   obtenerCategorias,
   obtenerCategoriaPorId,
+  obtenerCategoriasActivas,
   crearCategoria,
   actualizarCategoria,
   obtenerCategoriasRopa,
@@ -16,6 +17,7 @@ const router = Router();
 router.use(verificarToken);
 
 router.get('/', obtenerCategorias);
+router.get('/activas', obtenerCategoriasActivas);
 router.get('/ropa', obtenerCategoriasRopa);
 router.get('/no-ropa', obtenerCategoriasNoRopa);
 router.get('/:id', obtenerCategoriaPorId);
