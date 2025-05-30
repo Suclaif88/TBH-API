@@ -60,3 +60,29 @@ try {
 }
 };
 
+// Cambia el estado de un Servicio (activar o desactivar)
+exports.cambiarEstadoServicio = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const servicio = await Servicios.findByPk(id);
+    if (!servicio) {
+      return res.status(404).json({ status: 'error', message: 'servicio no encontrado' });
+    }
+
+    servicio.Estado = !servicio.Estado;
+    await servicio.save();
+
+    res.json({
+      status: 'success',
+      mensaje: `servicio ${servicio.Estado ? 'activado' : 'desactivado'} correctamente`,
+      servicio
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+
+
+
