@@ -5,7 +5,8 @@ const {
   listarUsuarioPorDocumento,
   buscarUsuarioPorEmail,
   actualizarUsuario,
-  eliminarUsuario
+  eliminarUsuario,
+  cambiarEstadoUsuario
 } = require('../controllers/usuario.controller');
 
 const verificarToken = require('../middleware/authMiddleware');
@@ -20,5 +21,6 @@ router.get('/email/:email', buscarUsuarioPorEmail)
 router.post('/', crearUsuario);
 router.put('/:id', actualizarUsuario);
 router.delete('/:id', eliminarUsuario);
+router.put('/estado/:id', cambiarEstadoUsuario)
 
 module.exports = router;
