@@ -81,3 +81,26 @@ exports.buscarUsuarioPorEmail = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+exports.cambiarEstadoUsuario = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const usuario = await Usuarios.findByPk(id);
+    if (!usuario) {
+      return res.status(404).json({ status: 'error', message: 'usuario no encontrado' });
+    }
+
+    usuario.Estado = !usuario.Estado;
+    await usuario.save();
+
+    res.json({
+      status: 'success',
+      mensaje: `usuario ${usuario.Estado ? 'activado' : 'desactivado'} correctamente`,
+      usuario
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+

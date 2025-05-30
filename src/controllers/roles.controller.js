@@ -66,3 +66,24 @@ exports.eliminarRoles = async (req, res) => {
   }
 };
 
+exports.cambiarEstadoRoles = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const rol = await Roles.findByPk(id);
+    if (!rol) {
+      return res.status(404).json({ status: 'error', message: 'Rol no encontrado' });
+    }
+
+    rol.Estado = !rol.Estado;
+    await rol.save();
+
+    res.json({
+      status: 'success',
+      mensaje: `rol ${rol.Estado ? 'activado' : 'desactivado'} correctamente`,
+      rol
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
