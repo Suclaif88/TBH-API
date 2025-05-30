@@ -4,6 +4,7 @@ const {
     listarServicio,
     obtenerServicioById,
     actualizarServicio,
+    cambiarEstadoServicio,
     eliminarServicio    
 } = require ('../controllers/servicios.controller');
 const verificarToken =require('../middleware/authMiddleware');
@@ -16,6 +17,7 @@ router.post('/', crearServicio)
 router.get('/', listarServicio)
 router.get('/:id', obtenerServicioById)
 router.put('/:id', actualizarServicio)
+router.put('/estado/:id', cambiarEstadoServicio);
 router.delete('/:id', eliminarServicio)
 
 
