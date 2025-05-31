@@ -23,14 +23,14 @@ exports.listarRolesId = async (req, res) => {
     const { id } = req.params;
 
     const rol = await Roles.findOne({
-      where: { id }
+      where: { Id:id }
     });
 
     if (!rol) {
       return res.status(404).json({ status: 'error', message: 'Rol no encontrado' });
     }
 
-    res.json({ status: 'success', data: usuario });
+    res.json({ status: 'success', data: rol });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
