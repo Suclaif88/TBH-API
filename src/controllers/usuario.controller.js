@@ -58,11 +58,11 @@ exports.listarUsuarioPorDocumento = async (req, res) => {
 exports.actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const usuario = await Usuarios.findOne({ where: { documento: id } });
+    const usuario = await Usuarios.findOne({ where: { Id_Usuario: id } });
     if (!usuario) {
       return res.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
     }
-    await Usuarios.update(req.body, { where: { documento: id } });
+    await Usuarios.update(req.body, { where: { Id_Usuario: id } });
     res.json({ status: 'success', message: 'Usuario actualizado' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
