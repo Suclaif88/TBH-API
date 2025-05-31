@@ -18,6 +18,24 @@ exports.listarUsuario = async (req, res) => {
   }
 };
 
+exports.listarUsuarioPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const usuario = await Usuarios.findOne({
+      where: { Id_Usuario: id }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
+    }
+
+    res.json({ status: 'success', data: usuario });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
 exports.listarUsuarioPorDocumento = async (req, res) => {
   try {
     const { documento } = req.params;
