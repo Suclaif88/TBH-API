@@ -84,11 +84,11 @@ exports.actualizarUsuario = async (req, res) => {
 exports.eliminarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const usuario = await Usuarios.findOne({ where: { documento: id } });
+    const usuario = await Usuarios.findOne({ where: { Id_Usuario: id } });
     if (!usuario) {
       return res.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
     }
-    await Usuarios.destroy({ where: { documento: id } });
+    await Usuarios.destroy({ where: { Id_Usuario: id } });
     res.json({ status: 'success', message: 'Usuario eliminado' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
