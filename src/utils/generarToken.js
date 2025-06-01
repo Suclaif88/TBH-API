@@ -8,7 +8,8 @@ const generarToken = (usuario) => {
       id: data.Id_Usuario,
       documento: data.Documento,
       rol_id: data.Rol_Id,
-      correo: data.Correo
+      correo: data.Correo,
+      estado: data.Estado
     },
     process.env.JWT_SECRET,
     { expiresIn: '1h' }
