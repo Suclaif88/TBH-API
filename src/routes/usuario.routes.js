@@ -2,6 +2,7 @@ const { Router } = require('express');
 const {
   crearUsuario,
   listarUsuario,
+  listarUsuarioPorId,
   listarUsuarioPorDocumento,
   buscarUsuarioPorEmail,
   actualizarUsuario,
@@ -16,6 +17,7 @@ const router = Router();
 router.use(verificarToken);
 
 router.get('/', listarUsuario);
+router.get('/:id', listarUsuarioPorId)
 router.get('/:documento', listarUsuarioPorDocumento)
 router.get('/email/:email', buscarUsuarioPorEmail)
 router.post('/', crearUsuario);

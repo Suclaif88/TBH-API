@@ -18,6 +18,24 @@ exports.listarUsuario = async (req, res) => {
   }
 };
 
+exports.listarUsuarioPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const usuario = await Usuarios.findOne({
+      where: { Id_Usuario: id }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
+    }
+
+    res.json({ status: 'success', data: usuario });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
 exports.listarUsuarioPorDocumento = async (req, res) => {
   try {
     const { documento } = req.params;
@@ -38,28 +56,39 @@ exports.listarUsuarioPorDocumento = async (req, res) => {
 
 
 exports.actualizarUsuario = async (req, res) => {
+  const bcrypt = require('bcryptjs');
   try {
     const { id } = req.params;
-    const usuario = await Usuarios.findOne({ where: { documento: id } });
+    const usuario = await Usuarios.findOne({ where: { Id_Usuario: id } });
+
     if (!usuario) {
       return res.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
     }
-    await Usuarios.update(req.body, { where: { documento: id } });
+
+    const datosActualizados = { ...req.body };
+
+    if (datosActualizados.Password && datosActualizados.Password.trim() !== "") {
+      datosActualizados.Password = await bcrypt.hash(datosActualizados.Password, 10);
+    } else {
+      delete datosActualizados.Password;
+    }
+
+    await Usuarios.update(datosActualizados, { where: { Id_Usuario: id } });
+
     res.json({ status: 'success', message: 'Usuario actualizado' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
-
 exports.eliminarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const usuario = await Usuarios.findOne({ where: { documento: id } });
+    const usuario = await Usuarios.findOne({ where: { Id_Usuario: id } });
     if (!usuario) {
       return res.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
     }
-    await Usuarios.destroy({ where: { documento: id } });
+    await Usuarios.destroy({ where: { Id_Usuario: id } });
     res.json({ status: 'success', message: 'Usuario eliminado' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });

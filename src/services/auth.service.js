@@ -52,7 +52,6 @@ exports.register = async (data) => {
   exports.login = async (data) => {
     const { Documento, Correo, Password } = data;
 
-  
     try {
       let usuario;
 
@@ -65,6 +64,10 @@ exports.register = async (data) => {
   
       if (!usuario) {
         throw new Error('Credenciales incorrectas');
+      }
+
+      if (!usuario.Estado) {
+      throw new Error('La cuenta no está activa. Por favor, Activa por el mensaje que previamente se te envio al correo.');
       }
   
       const esContraseñaValida = await bcrypt.compare(Password, usuario.Password);
