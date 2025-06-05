@@ -24,11 +24,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     Celular_Empresa: {
-      type: DataTypes.CHAR(10),
+      type: DataTypes.CHAR(11),
       allowNull: true
     },
     Celular_Asesor: {
-      type: DataTypes.CHAR(10),
+      type: DataTypes.CHAR(11),
       allowNull: true
     },
     Tipo_Documento: {
