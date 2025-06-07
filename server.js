@@ -30,10 +30,24 @@ const iniciarServidor = async () => {
     }, 5500);
 
     app.set('trust proxy', 1);
+
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://192.168.0.198:5173'
+    ];
+
     app.use(cors({
-      origin: 'http://localhost:5173',// esto debe cambiarse
+      origin: function(origin, callback) {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+          const msg = `El CORS policy no permite el acceso desde el origen: ${origin}`;
+          return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+      },
       credentials: true
     }));
+
     app.use(limiter);
     app.use(express.json());
     app.use(cookieParser());
