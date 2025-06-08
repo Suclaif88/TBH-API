@@ -1,8 +1,15 @@
 const { Usuarios } = require('../models');
+const bcrypt = require('bcryptjs');
 
 exports.crearUsuario = async (req, res) => {
   try {
-    const nuevoUsuario = await Usuarios.create(req.body);
+    const datosUsuario = { ...req.body };
+
+    if (datosUsuario.Password && datosUsuario.Password.trim() !== "") {
+      datosUsuario.Password = await bcrypt.hash(datosUsuario.Password, 10);
+    }
+
+    const nuevoUsuario = await Usuarios.create(datosUsuario);
     res.json({ status: 'success', data: nuevoUsuario });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
@@ -56,7 +63,6 @@ exports.listarUsuarioPorDocumento = async (req, res) => {
 
 
 exports.actualizarUsuario = async (req, res) => {
-  const bcrypt = require('bcryptjs');
   try {
     const { id } = req.params;
     const usuario = await Usuarios.findOne({ where: { Id_Usuario: id } });
