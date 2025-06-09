@@ -20,7 +20,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     Descripcion: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(100),
       allowNull: true
     },
     Estado: {
