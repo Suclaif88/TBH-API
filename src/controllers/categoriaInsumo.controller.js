@@ -4,7 +4,7 @@ exports.crearCategoria = async (req, res) => {
   try {
     const nuevaCategoria = await Categoria_Insumos.create({
       ...req.body,
-      Estado: 0,
+      Estado: 1,
     });
     res.json({ status: 'success', data: nuevaCategoria });
   } catch (err) {
