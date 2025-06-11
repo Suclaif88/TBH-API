@@ -52,7 +52,7 @@ router.use('/categoria-producto', categoriaProductosRoutes);
 router.use('/categoria-insumo', categoriaInsumoRoutes);
 router.use('/ventas', ventasRoutes);
 router.use('/roles', rolesRoutes);
-router.use('/rolesPermisos', rolesPermisosRoutes);
+router.use('/roles-permiso', rolesPermisosRoutes);
 router.use('/permisos', Permisos);
 router.use('/usuarios', usuariosRoutes);
 router.use('/empleados',empleadosRoutes);
