@@ -51,6 +51,23 @@ exports.listarRolPermisoId = async (req, res) => {
   }
 };
 
+exports.listarPermisosPorRol = async (req, res) => {
+  try {
+    const { rolId } = req.params;
+
+    const permisos = await Rol_Permiso.findAll({
+      where: { Rol_Id: rolId },
+      attributes: ["Permiso_Id"]
+    });
+
+    res.json({ status: "success", data: permisos });
+  } catch (err) {
+    console.error("Error al listar permisos por Rol_Id:", err);
+    res.status(500).json({ status: "error", message: err.message });
+  }
+};
+
+
 exports.actualizarRolPermiso = async (req, res) => {
   try {
     const { id } = req.params;
