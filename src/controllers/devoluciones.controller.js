@@ -62,3 +62,23 @@ exports.eliminarDevolucion = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+exports.cambiarEstadoDevolucion = async(req,res)=>{
+  try{
+    const id = req.params.id;
+    const devolucion = await Devoluciones.findByPk(id);
+    if(!devolucion){
+      return res.status(400).json({status: 'error', message: 'Devolucion no encontrada'})
+    }
+    devolucion.Estado = !devolucion.Estado;
+    await devolucion.save();
+
+    res.json({
+      status:'success',
+      mensaje :`Devolucion ${devolucion.Estado ? 'activada' : 'desactivada'} correctamente`,
+
+    });
+  }catch(error){
+    res.status(500).json({status: 'error', message: error.message});
+  }
+}
