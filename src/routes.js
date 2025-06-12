@@ -20,7 +20,6 @@ const serviciosRoutes= require ('./routes/servicios.routes.js' );
 const novedadesRoutes= require ('./routes/novedades.routes.js');
 
 const comprasRoutes = require ('./routes/compras.routes.js');
-const detallesCompraRoutes = require ('./routes/detallesCompra.routes.js'); 
 
 const proveedoresRoutes = require('./routes/proveedores.routes.js');
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
@@ -40,7 +39,6 @@ router.use('/logout', logout)
 router.use('/insumos', insumoRoutes);
 
 router.use ('/compras', comprasRoutes);
-router.use ('/detalles-compra', detallesCompraRoutes);
 
 router.use('/proveedores', proveedoresRoutes);
 router.use('/productos', ProductosRoutes);
