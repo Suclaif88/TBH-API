@@ -9,7 +9,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     Documento: {
       type: DataTypes.STRING(20),
-      allowNull: false
+      allowNull: false,
+      unique: "Documento"
     },
     Tipo_Documento: {
       type: DataTypes.STRING(40),
