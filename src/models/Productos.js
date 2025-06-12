@@ -45,10 +45,14 @@ module.exports = function(sequelize, DataTypes) {
     hooks: {
       async afterCreate(producto, options) {
         const { Id_Categoria_Producto, Id_Productos } = producto;
+
         const Categoria = await sequelize.models.Categoria_Productos.findByPk(Id_Categoria_Producto);
 
         if (Categoria && Categoria.Es_Ropa) {
-          const tallas = await sequelize.models.Tallas.findAll();
+          // Obtener solo las tallas que correspondan a la categoría del producto
+          const tallas = await sequelize.models.Tallas.findAll({
+            where: { Id_Categoria_Producto: Id_Categoria_Producto }
+          });
 
           const relaciones = tallas.map(talla => ({
             Id_Productos: Id_Productos,
