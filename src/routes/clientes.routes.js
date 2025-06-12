@@ -1,10 +1,13 @@
 const { Router } = require('express');
 const {
   crearCliente,
-  listarCliente,
+  listarClientes,
   listarClientePorId,
+  listarClientePorDocumento,
+  buscarClientePorEmail,
   actualizarCliente,
-  eliminarCliente
+  eliminarCliente,
+  cambiarEstadoCliente
 } = require('../controllers/cliente.controller');
 
 const verificarToken = require('../middleware/authMiddleware');
@@ -13,10 +16,13 @@ const router = Router();
 
 router.use(verificarToken);
 
-router.get('/', listarCliente);
-router.get('/:id_cliente', listarClientePorId)
+router.get('/', listarClientes);
+router.get('/:id', listarClientePorId)
+router.get('/:documento', listarClientePorDocumento)
+router.get('/email/:email', buscarClientePorEmail)
 router.post('/', crearCliente);
-router.put('/:id_cliente', actualizarCliente);
-router.delete('/:id_cliente', eliminarCliente);
+router.put('/:id', actualizarCliente);
+router.delete('/:id', eliminarCliente);
+router.put('/estado/:id', cambiarEstadoCliente)
 
 module.exports = router;
