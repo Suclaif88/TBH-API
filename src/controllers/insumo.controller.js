@@ -1,4 +1,5 @@
 const { Insumos } = require('../models');
+const axios = require('axios');
 
 exports.listarInsumos = async (req, res) => {
   try {
@@ -24,9 +25,6 @@ exports.obtenerInsumoPorId = async (req, res) => {
   }
 };
 
-
-//--------------------------------------------------------------------------
-
 exports.crearInsumo = async (req, res) => {
   try {
     const nuevoInsumo = await Insumos.create(req.body);
@@ -35,6 +33,28 @@ exports.crearInsumo = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+exports.cambiarEstado = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const insumo = await Insumos.findByPk(id);
+    if (!insumo) {
+      return res.status(404).json({ status: 'error', message: 'Insumo no encontrado' });
+    }
+
+    insumo.Estado = !insumo.Estado;
+    await insumo.save();
+
+    res.json({ status: 'success', data: insumo });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+//--------------------------------------------------------------------------
+
+
 
 exports.actualizarInsumo = async (req, res) => {
   try {
@@ -64,4 +84,3 @@ exports.eliminarInsumo = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
-

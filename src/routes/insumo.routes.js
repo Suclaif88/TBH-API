@@ -4,7 +4,8 @@ const {
   listarInsumos,
   obtenerInsumoPorId,
   actualizarInsumo,
-  eliminarInsumo
+  eliminarInsumo,
+  cambiarEstado
 } = require('../controllers/insumo.controller');
 const verificarToken = require('../middleware/authMiddleware');
 
@@ -17,5 +18,6 @@ router.get('/:id', obtenerInsumoPorId);
 router.post('/', crearInsumo);
 router.put('/:id', actualizarInsumo);
 router.delete('/:id', eliminarInsumo);
+router.patch('/estado/:id', cambiarEstado);
 
 module.exports = router;

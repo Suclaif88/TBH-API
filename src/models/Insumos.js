@@ -19,10 +19,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(100),
       allowNull: false
     },
-    Stock_Ml: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
     Stock: {
       type: DataTypes.INTEGER,
       allowNull: false,
