@@ -6,7 +6,8 @@ obtenerTamanosActivos,
 crearTamano,
 actualizarTamano,
 eliminarTamano,
-cambiarEstadoTamano
+cambiarEstadoTamano,
+crearRelacionTamañoInsumos
 } = require('../controllers/tamano.controller');
 const verificarToken = require('../middleware/authMiddleware');
 
@@ -18,6 +19,7 @@ router.get('/', obtenerTamanos);
 router.get('/activos', obtenerTamanosActivos);
 router.get('/:id', obtenerTamanoPorId);
 router.post('/', crearTamano);
+router.post('/relaciones', crearRelacionTamañoInsumos);
 router.put('/:id', actualizarTamano);
 router.delete('/:id', eliminarTamano);
 router.put('/estado/:id', cambiarEstadoTamano);

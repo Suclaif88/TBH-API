@@ -1,5 +1,4 @@
-const { Insumos } = require('../models');
-const axios = require('axios');
+const { Categoria_Insumos, Insumos } = require('../models');
 
 exports.listarInsumos = async (req, res) => {
   try {
@@ -24,6 +23,54 @@ exports.obtenerInsumoPorId = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+exports.obtenerInsumosBase = async (req, res) => {
+  try {
+    const insumosBase = await Insumos.findAll({
+      where: {
+        Estado: true
+      },
+      include: [
+        {
+          model: Categoria_Insumos,
+          as: "Id_Categoria_Insumos_Categoria_Insumo",
+          where: {
+            Nombre: "Base"
+          }
+        }
+      ]
+    });
+
+    res.json({ status: 'success', data: insumosBase });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+exports.obtenerInsumosFrascos = async (req, res) => {
+  try {
+    const insumosBase = await Insumos.findAll({
+      where: {
+        Estado: true
+      },
+      include: [
+        {
+          model: Categoria_Insumos,
+          as: "Id_Categoria_Insumos_Categoria_Insumo",
+          where: {
+            Nombre: "Frasco"
+          }
+        }
+      ]
+    });
+
+    res.json({ status: 'success', data: insumosBase });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+
 
 exports.crearInsumo = async (req, res) => {
   try {
