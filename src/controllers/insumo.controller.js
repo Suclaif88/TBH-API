@@ -1,5 +1,5 @@
 const { Insumos } = require('../models');
-const axios = require('axios');
+// const axios = require('axios');
 
 exports.listarInsumos = async (req, res) => {
   try {
