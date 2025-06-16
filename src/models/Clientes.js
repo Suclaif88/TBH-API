@@ -20,6 +20,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(50),
       allowNull: false
     },
+    Correo: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: "Correo"
+    },
     Celular: {
       type: DataTypes.STRING(15),
       allowNull: false
@@ -34,7 +39,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     Sexo: {
       type: DataTypes.CHAR(1),
-      allowNull: false
+      allowNull: true
     },
     Saldo_A_Favor: {
       type: DataTypes.INTEGER,
