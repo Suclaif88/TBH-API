@@ -72,15 +72,26 @@ exports.actualizarCategoria = async (req, res) => {
 exports.eliminarCategoria = async (req, res) => {
   const id = req.params.id;
 
-  const productos = await Productos.findOne({ where: { Id_Categoria_Producto: id } });
+  try {
+    const categoria = await Categoria_Productos.findByPk(id);
+    if (!categoria) {
+      return res.status(404).json({ status: 'error', message: 'Categoría no encontrada.' });
+    }
 
-  if (productos) {
-    res.status(400).json({ status: 'Error', message: "No se Puede Eliminar: La Categoria tiene Productos registrados." });
+    const productos = await Productos.findOne({ where: { Id_Categoria_Producto: id } });
+    if (productos) {
+      return res.status(400).json({ status: 'error', message: 'No se puede eliminar: la categoría tiene productos registrados.' });
+    }
+
+    await Categoria_Productos.destroy({ where: { Id_Categoria_Producto: id } });
+    return res.json({ status: 'success', mensaje: 'Categoría eliminada correctamente.' });
+
+  } catch (error) {
+    console.error('Error al eliminar la categoría:', error);
+    return res.status(500).json({ status: 'error', message: 'Error interno del servidor.' });
   }
-
-  await Categoria_Productos.destroy({ where: { Id_Categoria_Producto: id } });
-  res.json({ status: 'success', mensaje: "Categoria eliminada correctamente." });
 };
+
 
 // Cambiar el estado de una categoría (activar o desactivar)
 exports.cambiarEstadoCategoria = async (req, res) => {
