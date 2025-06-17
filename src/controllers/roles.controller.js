@@ -1,4 +1,4 @@
-const { Roles } = require('../models');
+const { Roles , Usuarios} = require('../models');
 
 exports.crearRoles = async (req, res) => {
   try {
@@ -75,12 +75,21 @@ exports.cambiarEstadoRoles = async (req, res) => {
       return res.status(404).json({ status: 'error', message: 'Rol no encontrado' });
     }
 
+    const usuariosConRol = await Usuarios.findOne({ where: { Rol_Id: id } });
+
+    if (usuariosConRol && rol.Estado === true) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No se puede desactivar el rol porque está asignado a uno o más usuarios.'
+      });
+    }
+
     rol.Estado = !rol.Estado;
     await rol.save();
 
     res.json({
       status: 'success',
-      mensaje: `rol ${rol.Estado ? 'activado' : 'desactivado'} correctamente`,
+      mensaje: `Rol ${rol.Estado ? 'activado' : 'desactivado'} correctamente`,
       rol
     });
   } catch (error) {
