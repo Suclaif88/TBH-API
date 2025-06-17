@@ -2,9 +2,19 @@ const { Categoria_Insumos, Insumos } = require('../models');
 
 exports.listarInsumos = async (req, res) => {
   try {
-    const insumos = await Insumos.findAll();
+    const insumos = await Insumos.findAll({
+      include: [
+        {
+          model: Categoria_Insumos,
+          as: 'Id_Categoria_Insumos_Categoria_Insumo', 
+          attributes: ['Nombre'],
+        },
+      ],
+    });
+
     res.json({ status: 'success', data: insumos });
   } catch (err) {
+    console.error("Error al listar insumos:", err);
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
