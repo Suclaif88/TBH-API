@@ -2,15 +2,28 @@ const { Categoria_Insumos, Insumos } = require('../models');
 
 exports.crearCategoria = async (req, res) => {
   try {
+    const { Nombre } = req.body;
+
+    const categoriaExistente = await Categoria_Insumos.findOne({ where: { Nombre } });
+
+    if (categoriaExistente) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe una categoría con ese nombre.',
+      });
+    }
+
     const nuevaCategoria = await Categoria_Insumos.create({
       ...req.body,
       Estado: 1,
     });
+
     res.json({ status: 'success', data: nuevaCategoria });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
 
 exports.listarCategorias = async (req, res) => {
   try {
