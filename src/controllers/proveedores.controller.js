@@ -41,20 +41,30 @@ try {
 };
 
 // Crear nuevo Proveedor
+const limpiarCamposVacios = (data) => {
+  const limpio = {};
+  for (const [key, value] of Object.entries(data)) {
+    limpio[key] = value === '' ? null : value;
+  }
+  return limpio;
+};
+
 exports.crearProveedor = async (req, res) => {
   try {
-    const nuevoProveedor = await Proveedores.create(req.body);
+    const datosLimpios = limpiarCamposVacios(req.body);
+    const nuevoProveedor = await Proveedores.create(datosLimpios);
     res.json({ status: 'success', data: nuevoProveedor });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
-// Actualizar un Proveedor
 exports.actualizarProveedor = async (req, res) => {
   try {
     const id = req.params.id;
-    const [updated] = await Proveedores.update(req.body, {
+    const datosLimpios = limpiarCamposVacios(req.body);
+
+    const [updated] = await Proveedores.update(datosLimpios, {
       where: { Id_Proveedores: id }
     });
 
