@@ -1,12 +1,48 @@
-const { Productos } = require('../models');
+const { Categoria_Productos, Productos, Tamano, Producto_Tamano, Producto_Tamano_Insumos } = require('../models');
 
 exports.crearProducto = async (req, res) => {
-try {
-    const nuevoProducto = await Productos.create(req.body);
+  const t = await Productos.sequelize.transaction(); // iniciar transacción opcional
+  try {
+    const { InsumoExtra, ...productoData } = req.body;
+
+    const nuevoProducto = await Productos.create(productoData, { transaction: t });
+
+    // Solo si es perfume y se mandó un insumo adicional
+    if (InsumoExtra && productoData.Id_Categoria_Producto) {
+      const categoria = await Categoria_Productos.findByPk(productoData.Id_Categoria_Producto);
+
+      if (categoria?.Nombre === 'Perfume') {
+        const tamanos = await Tamano.findAll({
+          where: { Estado: true }
+        });
+
+        for (const tamano of tamanos) {
+          // Obtener el Producto_Tamano relacionado
+          const productoTamano = await Producto_Tamano.findOne({
+            where: {
+              Id_Productos: nuevoProducto.Id_Productos,
+              Id_Tamano: tamano.Id_Tamano
+            }
+          });
+
+          if (productoTamano) {
+            await Producto_Tamano_Insumos.create({
+              Id_Producto_Tamano: productoTamano.Id_Producto_Tamano,
+              Id_Insumos: InsumoExtra.Id_Insumos,
+              Cantidad_Consumo: InsumoExtra.Cantidad_Consumo
+            }, { transaction: t });
+          }
+        }
+      }
+    }
+
+    await t.commit();
     res.json({ status: 'success', data: nuevoProducto });
-} catch (error) {
+
+  } catch (error) {
+    await t.rollback();
     res.status(500).json({ status: 'error', message: error.message });
-}
+  }
 };
 
 exports.listarProductos = async (req, res) => {
