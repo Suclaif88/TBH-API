@@ -1,4 +1,4 @@
-const { Rol_Permiso } = require('../models');
+const { Rol_Permiso,Permisos  } = require('../models');
 
 exports.crearRolPermiso = async (req, res) => {
   try {
@@ -55,12 +55,26 @@ exports.listarPermisosPorRol = async (req, res) => {
   try {
     const { rolId } = req.params;
 
-    const permisos = await Rol_Permiso.findAll({
+    const asignaciones = await Rol_Permiso.findAll({
       where: { Rol_Id: rolId },
       attributes: ["Permiso_Id"]
     });
 
-    res.json({ status: "success", data: permisos });
+    const ids = asignaciones.map(p => p.Permiso_Id);
+
+    const permisos = await Permisos.findAll({
+      where: {
+        Id: ids
+      },
+      attributes: ["Id", "Nombre"]
+    });
+
+    const resultado = permisos.map(p => ({
+      Permiso_Id: p.Id,
+      Nombre: p.Nombre
+    }));
+
+    res.json({ status: "success", data: resultado });
   } catch (err) {
     console.error("Error al listar permisos por Rol_Id:", err);
     res.status(500).json({ status: "error", message: err.message });
