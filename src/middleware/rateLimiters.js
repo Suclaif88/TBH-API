@@ -29,7 +29,7 @@ const registerLimiter = rateLimit({
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 100000000000000000000000000000000000000000000000000000000, // se cambia por la chillona de nando
   message: 'Demasiadas peticiones desde esta IP, intenta de nuevo más tarde.',
   standardHeaders: true,
   legacyHeaders: false,
