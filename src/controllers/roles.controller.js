@@ -2,7 +2,23 @@ const { Roles , Usuarios} = require('../models');
 
 exports.crearRoles = async (req, res) => {
   try {
+    const { Nombre } = req.body;
+
+    const rolExistente = await Roles.findOne({
+      where: {
+        Nombre: Nombre.trim(), 
+      },
+    });
+
+    if (rolExistente) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe un rol con ese nombre.',
+      });
+    }
+
     const nuevoRoles = await Roles.create(req.body);
+
     res.json({ status: 'success', data: nuevoRoles });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
