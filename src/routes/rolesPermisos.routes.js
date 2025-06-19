@@ -15,12 +15,14 @@ const autorizar = require('../middleware/checkPermission');
 const router = Router();
 
 router.use(verificarToken);
+
+router.get('/rol/:rolId', listarPermisosPorRol);
+
 router.use(autorizar('Roles'));
 
 
 router.get('/', listarRolPermisos);
 router.get('/:id', listarRolPermisoId);
-router.get('/rol/:rolId', listarPermisosPorRol);
 router.post('/', crearRolPermiso);
 router.put('/:id', actualizarRolPermiso);
 router.delete('/:id', eliminarRolPermiso);
