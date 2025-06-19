@@ -9,10 +9,12 @@ eliminarProveedor,
 cambiarEstadoProveedor
 } = require('../controllers/proveedores.controller');
 const verificarToken = require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Proveedores'));
 
 router.get('/', obtenerProveedores);
 router.get('/activos', obtenerProveedoresActivos );

@@ -9,10 +9,12 @@ const {
 } = require('../controllers/roles.controller');
 
 const verificarToken = require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Roles'));
 
 router.get('/', listarRoles);
 router.get('/:id', listarRolesId);

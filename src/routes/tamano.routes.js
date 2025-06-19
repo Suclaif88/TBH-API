@@ -10,10 +10,13 @@ cambiarEstadoTamano,
 crearRelacionTamañoInsumos
 } = require('../controllers/tamano.controller');
 const verificarToken = require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Productos'));
+
 
 router.get('/', obtenerTamanos);
 router.get('/activos', obtenerTamanosActivos);
