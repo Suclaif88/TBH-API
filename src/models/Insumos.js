@@ -17,7 +17,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     Nombre: {
       type: DataTypes.STRING(100),
-      allowNull: false
+      allowNull: false,
+      unique: true,
     },
     Stock: {
       type: DataTypes.INTEGER,

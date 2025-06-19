@@ -1,4 +1,4 @@
-const { Categoria_Insumos, Insumos } = require('../models');
+const { Insumos, Categoria_Insumos, Detalle_Compra_Insumos } = require("../models");
 
 exports.listarInsumos = async (req, res) => {
   try {
@@ -6,18 +6,31 @@ exports.listarInsumos = async (req, res) => {
       include: [
         {
           model: Categoria_Insumos,
-          as: 'Id_Categoria_Insumos_Categoria_Insumo', 
+          as: 'Id_Categoria_Insumos_Categoria_Insumo',
           attributes: ['Nombre'],
+        },
+        {
+          model: Detalle_Compra_Insumos,
+          as: 'Detalle_Compra_Insumos',
+          attributes: ['Id_Detalle_Insumos'],
         },
       ],
     });
 
-    res.json({ status: 'success', data: insumos });
+    const procesados = insumos.map(insumo => {
+      const i = insumo.toJSON();
+      i.TieneCompras = i.Detalle_Compra_Insumos.length > 0;
+      delete i.Detalle_Compra_Insumos;
+      return i;
+    });
+
+    res.json({ status: 'success', data: procesados });
   } catch (err) {
     console.error("Error al listar insumos:", err);
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
 
 exports.obtenerInsumoPorId = async (req, res) => {
   try {
@@ -84,12 +97,21 @@ exports.obtenerInsumosFrascos = async (req, res) => {
 
 exports.crearInsumo = async (req, res) => {
   try {
-    const nuevoInsumo = await Insumos.create(req.body);
-    res.json({ status: 'success', data: nuevoInsumo });
+    const { Nombre } = req.body;
+
+    const existente = await Insumos.findOne({ where: { Nombre } });
+    if (existente) {
+      return res.status(400).json({ status: "error", message: "El insumo ya existe con ese nombre" });
+    }
+
+    const nuevo = await Insumos.create(req.body);
+    res.json({ status: "success", data: nuevo });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error("Error al crear insumo:", err);
+    res.status(500).json({ status: "error", message: err.message });
   }
 };
+
 
 exports.cambiarEstado = async (req, res) => {
   try {
