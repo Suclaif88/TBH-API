@@ -22,7 +22,12 @@ module.exports = function(sequelize, DataTypes) {
         model: 'Permisos',
         key: 'Id'
       }
-    }
+    },
+     Estado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: 0
+    },
   }, {
     sequelize,
     tableName: 'Rol_Permiso',

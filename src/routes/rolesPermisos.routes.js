@@ -5,7 +5,8 @@ const {
     listarRolPermisoId,
     actualizarRolPermiso,
     eliminarRolPermiso,
-    listarPermisosPorRol
+    listarPermisosPorRol,
+    cambiarEstadoRolPermiso
 } = require('../controllers/asignacionPermisos.controller');
 
 const verificarToken = require('../middleware/authMiddleware');
@@ -20,5 +21,6 @@ router.get('/rol/:rolId', listarPermisosPorRol);
 router.post('/', crearRolPermiso);
 router.put('/:id', actualizarRolPermiso);
 router.delete('/:id', eliminarRolPermiso);
+router.put('/estado/:id', cambiarEstadoRolPermiso)
 
 module.exports = router;
