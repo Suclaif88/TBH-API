@@ -6,10 +6,12 @@ const {
     eliminarAgendamientos    
 } = require ('../controllers/agendamiento.controller');
 const verificarToken =require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
-const router = Router ();
+const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Agendamiento'));
 
 router.post('/', crearAgendamientos)
 router.get('/', listarAgendamiento)

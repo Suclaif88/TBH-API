@@ -8,10 +8,13 @@ const {
     eliminarServicio    
 } = require ('../controllers/servicios.controller');
 const verificarToken =require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
-const router = Router ();
+const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Servicios'));
+
 
 router.post('/', crearServicio)
 router.get('/', listarServicio)

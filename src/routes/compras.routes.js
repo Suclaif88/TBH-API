@@ -8,10 +8,12 @@ cambiarEstadoCompra,
 crearDetalles
 } = require('../controllers/compras.controller');
 const verificarToken = require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Compras'));
 
 router.post("/", crearCompra);
 router.post("/detalles-compra", crearDetalles);

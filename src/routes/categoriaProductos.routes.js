@@ -11,10 +11,12 @@ const {
   cambiarEstadoCategoria
 } = require('../controllers/categoriaProducto.controller');
 const verificarToken = require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Categoria Productos'));
 
 router.get('/', obtenerCategorias);
 router.get('/activas', obtenerCategoriasActivas);

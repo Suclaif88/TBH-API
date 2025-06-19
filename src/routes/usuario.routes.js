@@ -11,10 +11,13 @@ const {
 } = require('../controllers/usuario.controller');
 
 const verificarToken = require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Usuarios'));
+
 
 router.get('/', listarUsuario);
 router.get('/:id', listarUsuarioPorId)

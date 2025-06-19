@@ -10,10 +10,12 @@ const {
   cambiarEstado
 } = require('../controllers/insumo.controller');
 const verificarToken = require('../middleware/authMiddleware');
+const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
 router.use(verificarToken);
+router.use(autorizar('Insumos'));
 
 router.get('/', listarInsumos);
 router.get('/base', obtenerInsumosBase);
