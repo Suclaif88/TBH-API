@@ -5,6 +5,7 @@ const {
   obtenerInsumoPorId,
   obtenerInsumosBase,
   obtenerInsumosFrascos,
+  obtenerInsumosFragancia,
   actualizarInsumo,
   eliminarInsumo,
   cambiarEstado
@@ -18,6 +19,7 @@ router.use(verificarToken);
 router.get('/', listarInsumos);
 router.get('/base', obtenerInsumosBase);
 router.get('/frascos', obtenerInsumosFrascos);
+router.get('/fragancias', obtenerInsumosFragancia);
 router.get('/:id', obtenerInsumoPorId);
 router.post('/', crearInsumo);
 router.put('/:id', actualizarInsumo);
