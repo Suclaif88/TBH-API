@@ -1,4 +1,95 @@
-const { Categoria_Productos, Productos, Tamano, Producto_Tamano, Producto_Tamano_Insumos, Insumos, Categoria_Insumos, Tamano_Insumos, Tallas, Producto_Tallas, } = require('../models');
+const { Categoria_Productos, Productos, Tamano, Producto_Tamano, Producto_Tamano_Insumos, Insumos, Categoria_Insumos, Tamano_Insumos, Tallas, Producto_Tallas, Detalle_Compra_Productos, Detalle_Venta } = require('../models');
+
+async function asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra) {
+  const tamanos = await Tamano.findAll({ where: { Estado: true } });
+
+  for (const tamano of tamanos) {
+    let productoTamano = await Producto_Tamano.findOne({
+      where: {
+        Id_Productos,
+        Id_Tamano: tamano.Id_Tamano
+      }
+    });
+
+    if (!productoTamano) {
+      productoTamano = await Producto_Tamano.create({
+        Id_Productos,
+        Id_Tamano: tamano.Id_Tamano
+      });
+    }
+
+    const insumosBase = await Tamano_Insumos.findAll({
+      where: { Id_Tamano: tamano.Id_Tamano },
+      include: [
+        {
+          model: Insumos,
+          as: 'Id_Insumos_Insumo',
+          required: true,
+          include: [
+            {
+              model: Categoria_Insumos,
+              as: 'Id_Categoria_Insumos_Categoria_Insumo',
+              required: true,
+              where: { Nombre: 'Base' }
+            }
+          ]
+        }
+      ]
+    });
+
+    const sumaBase = insumosBase.reduce((acc, item) => acc + parseFloat(item.Cantidad), 0);
+    const cantidadRestante = tamano.Cantidad_Maxima - sumaBase;
+
+    if (cantidadRestante < 0) {
+      throw new Error(`El tamaño "${tamano.Nombre}" ya tiene insumos base que superan su capacidad.`);
+    }
+
+    const existente = await Producto_Tamano_Insumos.findOne({
+      where: { Id_Producto_Tamano: productoTamano.Id_Producto_Tamano }
+    });
+
+    if (existente) {
+      await existente.update({
+        Id_Insumos: InsumoExtra.Id_Insumos,
+        Cantidad_Consumo: cantidadRestante
+      });
+    } else {
+      await Producto_Tamano_Insumos.create({
+        Id_Producto_Tamano: productoTamano.Id_Producto_Tamano,
+        Id_Insumos: InsumoExtra.Id_Insumos,
+        Cantidad_Consumo: cantidadRestante
+      });
+    }
+  }
+}
+
+async function asignarTallasSiEsRopa(Id_Productos, Id_Categoria_Producto) {
+  const tallas = await Tallas.findAll({
+    where: { Id_Categoria_Producto }
+  });
+
+  const relaciones = tallas.map(talla => ({
+    Id_Productos,
+    Id_Tallas: talla.Id_Tallas,
+    Stock: 0
+  }));
+
+  await Producto_Tallas.bulkCreate(relaciones);
+}
+
+async function eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume, eraRopa) {
+  if (eraPerfume) {
+    const productoTamanos = await Producto_Tamano.findAll({ where: { Id_Productos } });
+    const idsProductoTamanos = productoTamanos.map(pt => pt.Id_Producto_Tamano);
+
+    await Producto_Tamano_Insumos.destroy({ where: { Id_Producto_Tamano: idsProductoTamanos } });
+    await Producto_Tamano.destroy({ where: { Id_Productos } });
+  }
+
+  if (eraRopa) {
+    await Producto_Tallas.destroy({ where: { Id_Productos } });
+  }
+}
 
 exports.crearProducto = async (req, res) => {
   try {
@@ -13,50 +104,11 @@ exports.crearProducto = async (req, res) => {
     }
 
     if (categoria.Nombre === 'Perfume' && InsumoExtra) {
-      const tamanos = await Tamano.findAll({ where: { Estado: true } });
+      await asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra);
+    }
 
-      for (const tamano of tamanos) {
-        const productoTamano = await Producto_Tamano.create({
-          Id_Productos,
-          Id_Tamano: tamano.Id_Tamano
-        });
-
-      const insumosBase = await Tamano_Insumos.findAll({
-        where: { Id_Tamano: tamano.Id_Tamano },
-        include: [
-          {
-            model: Insumos,
-            as: 'Id_Insumos_Insumo',
-            required: true,
-            include: [
-              {
-                model: Categoria_Insumos,
-                as: 'Id_Categoria_Insumos_Categoria_Insumo',
-                required: true,
-                where: { Nombre: 'Base' }
-              }
-            ]
-          }
-        ]
-      });
-
-      const sumaBase = insumosBase.reduce((acc, item) => acc + parseFloat(item.Cantidad), 0);
-
-      const cantidadRestante = tamano.Cantidad_Maxima - sumaBase;
-
-      if (cantidadRestante < 0) {
-        return res.status(400).json({
-          status: 'error',
-          message: `El tamaño "${tamano.Nombre}" ya tiene insumos base que superan su capacidad.`
-        });
-      }
-
-        await Producto_Tamano_Insumos.create({
-          Id_Producto_Tamano: productoTamano.Id_Producto_Tamano,
-          Id_Insumos: InsumoExtra.Id_Insumos,
-          Cantidad_Consumo: cantidadRestante
-        });
-      }
+    if (categoria.Es_Ropa) {
+      await asignarTallasSiEsRopa(Id_Productos, productoData.Id_Categoria_Producto);
     }
 
     res.json({ status: 'success', data: nuevoProducto });
@@ -67,9 +119,56 @@ exports.crearProducto = async (req, res) => {
   }
 };
 
+exports.actualizarProducto = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const Id_Productos = id;
+    const { InsumoExtra, ...nuevosDatos } = req.body;
 
+    const producto = await Productos.findByPk(Id_Productos);
+    if (!producto) {
+      return res.status(404).json({ status: 'error', message: 'Producto no encontrado' });
+    }
 
-exports.listarProductos = async (req, res) => {
+    const categoriaAnterior = await Categoria_Productos.findByPk(producto.Id_Categoria_Producto);
+    const categoriaNueva = await Categoria_Productos.findByPk(nuevosDatos.Id_Categoria_Producto);
+
+    const cambioCategoria = categoriaAnterior?.Id_Categoria_Producto !== categoriaNueva?.Id_Categoria_Producto;
+    const eraPerfume = categoriaAnterior?.Nombre === 'Perfume';
+    const esPerfume = categoriaNueva?.Nombre === 'Perfume';
+    const eraRopa = categoriaAnterior?.Es_Ropa;
+    const esRopa = categoriaNueva?.Es_Ropa;
+
+    if (cambioCategoria && esPerfume && !eraPerfume && producto.Stock > 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: `No puedes cambiar a "Perfume" si el stock del producto: ${producto.Stock}`
+      });
+    }
+
+    await producto.update(nuevosDatos);
+
+    if (cambioCategoria) {
+      await eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume, eraRopa);
+      if (esRopa) {
+        await asignarTallasSiEsRopa(Id_Productos, nuevosDatos.Id_Categoria_Producto);
+      }
+    }
+
+    if (esPerfume && InsumoExtra) {
+      await asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra);
+    }
+
+    res.json({ status: 'success', data: producto });
+
+  } catch (error) {
+    console.error(error);
+    const msg = error.message.includes('superan su capacidad') ? error.message : 'Error interno';
+    res.status(500).json({ status: 'error', message: msg });
+  }
+};
+
+exports.obtenerProductos = async (req, res) => {
   try {
     const productos = await Productos.findAll({
       include: [
@@ -140,6 +239,7 @@ exports.listarProductos = async (req, res) => {
         Categoria: categoria?.Nombre,
         Descripcion: producto.Descripcion,
         Precio_Venta: producto.Precio_Venta,
+        Precio_Compra: producto.Precio_Compra,
         Es_Ropa: categoria?.Es_Ropa,
         Es_Perfume: categoria?.Nombre === "Perfume",
         Stock: producto.Stock,
@@ -232,155 +332,47 @@ exports.obtenerProductoById = async (req, res) => {
   }
 };
 
-
-
-exports.actualizarProducto = async (req, res) => {
+exports.eliminarProducto = async (req, res) => {
   try {
     const { id } = req.params;
-    const Id_Productos = id;
-    const { InsumoExtra, ...nuevosDatos } = req.body;
 
-    const producto = await Productos.findByPk(Id_Productos);
+    // Verificar si el producto existe
+    const producto = await Productos.findOne({ where: { Id_Productos: id } });
     if (!producto) {
       return res.status(404).json({ status: 'error', message: 'Producto no encontrado' });
     }
 
-    const categoriaAnterior = await Categoria_Productos.findByPk(producto.Id_Categoria_Producto);
-    const categoriaNueva = await Categoria_Productos.findByPk(nuevosDatos.Id_Categoria_Producto);
+    // Verificar si tiene compras asociadas
+    const tieneCompras = await Detalle_Compra_Productos.findOne({
+      where: { Id_Productos: id }
+    });
 
-    const cambioCategoria = categoriaAnterior?.Id_Categoria_Producto !== categoriaNueva?.Id_Categoria_Producto;
-    const eraPerfume = categoriaAnterior?.Nombre === 'Perfume';
-    const esPerfume = categoriaNueva?.Nombre === 'Perfume';
-    const eraRopa = categoriaAnterior?.Es_Ropa;
-    const esRopa = categoriaNueva?.Es_Ropa;
-
-    // ✅ VALIDACIÓN antes de actualizar
-    if (cambioCategoria && esPerfume && !eraPerfume && producto.Stock > 0) {
+    if (tieneCompras) {
       return res.status(400).json({
         status: 'error',
-        message: `No puedes cambiar a "Perfume" si el stock del producto: ${producto.Stock}`
+        message: 'No se puede eliminar el producto porque tiene compras asociadas'
       });
     }
 
-    await producto.update(nuevosDatos);
+    // Verificar si tiene ventas asociadas
+    const tieneVentas = await Detalle_Venta.findOne({
+      where: { Id_Productos: id }
+    });
 
-    // Si cambia la categoría
-    if (cambioCategoria) {
-      if (eraPerfume) {
-        const productoTamanos = await Producto_Tamano.findAll({ where: { Id_Productos } });
-        const idsProductoTamanos = productoTamanos.map(pt => pt.Id_Producto_Tamano);
-
-        await Producto_Tamano_Insumos.destroy({ where: { Id_Producto_Tamano: idsProductoTamanos } });
-        await Producto_Tamano.destroy({ where: { Id_Productos } });
-      }
-
-      if (eraRopa) {
-        await Producto_Tallas.destroy({ where: { Id_Productos } });
-      }
-
-      if (esRopa) {
-        const tallas = await Tallas.findAll({
-          where: { Id_Categoria_Producto: nuevosDatos.Id_Categoria_Producto }
-        });
-
-        const relaciones = tallas.map(talla => ({
-          Id_Productos: producto.Id_Productos,
-          Id_Tallas: talla.Id_Tallas,
-          Stock: 0
-        }));
-
-        await Producto_Tallas.bulkCreate(relaciones);
-      }
+    if (tieneVentas) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No se puede eliminar el producto porque tiene ventas asociadas'
+      });
     }
 
-    // Si ahora es Perfume y hay InsumoExtra
-    if (esPerfume && InsumoExtra) {
-      const tamanos = await Tamano.findAll({ where: { Estado: true } });
+    // Si no tiene ni compras ni ventas, se elimina
+    await Productos.destroy({ where: { Id_Productos: id } });
 
-      for (const tamano of tamanos) {
-        let productoTamano = await Producto_Tamano.findOne({
-          where: {
-            Id_Productos,
-            Id_Tamano: tamano.Id_Tamano
-          }
-        });
-
-        if (!productoTamano) {
-          productoTamano = await Producto_Tamano.create({
-            Id_Productos,
-            Id_Tamano: tamano.Id_Tamano
-          });
-        }
-
-        const insumosBase = await Tamano_Insumos.findAll({
-          where: { Id_Tamano: tamano.Id_Tamano },
-          include: [
-            {
-              model: Insumos,
-              as: 'Id_Insumos_Insumo',
-              required: true,
-              include: [
-                {
-                  model: Categoria_Insumos,
-                  as: 'Id_Categoria_Insumos_Categoria_Insumo',
-                  required: true,
-                  where: { Nombre: 'Base' }
-                }
-              ]
-            }
-          ]
-        });
-
-        const sumaBase = insumosBase.reduce((acc, item) => acc + parseFloat(item.Cantidad), 0);
-        const cantidadRestante = tamano.Cantidad_Maxima - sumaBase;
-
-        if (cantidadRestante < 0) {
-          return res.status(400).json({
-            status: 'error',
-            message: `El tamaño "${tamano.Nombre}" ya tiene insumos base que superan su capacidad.`
-          });
-        }
-
-        const existente = await Producto_Tamano_Insumos.findOne({
-          where: { Id_Producto_Tamano: productoTamano.Id_Producto_Tamano }
-        });
-
-        if (existente) {
-          await existente.update({
-            Id_Insumos: InsumoExtra.Id_Insumos,
-            Cantidad_Consumo: cantidadRestante
-          });
-        } else {
-          await Producto_Tamano_Insumos.create({
-            Id_Producto_Tamano: productoTamano.Id_Producto_Tamano,
-            Id_Insumos: InsumoExtra.Id_Insumos,
-            Cantidad_Consumo: cantidadRestante
-          });
-        }
-      }
-    }
-
-    res.json({ status: 'success', data: producto });
-
+    res.json({ status: 'success', message: 'Producto eliminado correctamente' });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ status: 'error', message: error.message });
   }
-};
-
-
-exports.eliminarProducto = async (req, res) => {
-try {
-    const { id } = req.params;
-    const producto = await Productos.findOne({ where: { Id_Productos: id } });
-    if (!producto) {
-    return res.status(404).json({ status: 'error', message: 'Producto no encontrado' });
-    }
-    await Productos.destroy({ where: { Id_Productos: id } });
-    res.json({ status: 'success', message: 'Producto eliminado' });
-} catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
-}
 };
 
 exports.cambiarEstadoProducto = async (req, res) => {

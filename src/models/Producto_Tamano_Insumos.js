@@ -13,7 +13,8 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'Producto_Tamano',
         key: 'Id_Producto_Tamano'
-      }
+      },
+      onDelete: 'CASCADE'
     },
     Id_Insumos: {
       type: DataTypes.INTEGER,

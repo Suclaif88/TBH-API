@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const {
-    listarProductos,
+    obtenerProductos,
     obtenerProductoById,
     crearProducto,
     eliminarProducto,
@@ -13,7 +13,7 @@ const router = Router();
 
 router.use(verificarToken);
 
-router.get('/', listarProductos);
+router.get('/', obtenerProductos);
 router.get('/:id', obtenerProductoById);
 router.post('/', crearProducto);
 router.put('/:id', actualizarProducto);
