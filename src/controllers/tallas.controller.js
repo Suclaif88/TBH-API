@@ -1,15 +1,31 @@
-const { Tallas } = require('../models');
+const { Categoria_Productos, Tallas, Producto_Tallas } = require('../models');
 
 
 // Obtener todas las Tallas 
 exports.obtenerTallas = async (req, res) => {
   try {
-    const tallas = await Tallas.findAll();
-    res.json({ status: 'success', data: tallas });
+    const tallas = await Tallas.findAll({
+      include: {
+        model: Categoria_Productos,
+        as: 'Id_Categoria_Producto_Categoria_Producto',
+        attributes: ['Nombre']
+      }
+    });
+
+    const resultado = tallas.map(talla => ({
+      Id_Tallas: talla.Id_Tallas,
+      Nombre: talla.Nombre,
+      Estado: talla.Estado,
+      Id_Categoria_Producto: talla.Id_Categoria_Producto,
+      Categoria: talla.Id_Categoria_Producto_Categoria_Producto?.Nombre || null
+    }));
+
+    res.json({ status: 'success', data: resultado });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
+
 
 
 // Obtener una Talla por ID
@@ -63,6 +79,17 @@ exports.eliminarTalla = async (req, res) => {
     const talla = await Tallas.findByPk(id);
     if (!talla) {
       return res.status(404).json({ status: 'error', message: 'Talla no Encontrada' });
+    }
+
+    const existeRelacion = await Producto_Tallas.findOne({
+      where: { Id_Tallas: id }
+    });
+
+    if (existeRelacion) {
+      return res.status(400).json({
+          status: 'error',
+          message: 'No se puede eliminar la Talla porque está asociado a uno o más productos'
+      });
     }
 
     await talla.destroy();

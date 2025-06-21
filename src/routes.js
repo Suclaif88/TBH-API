@@ -24,10 +24,8 @@ const comprasRoutes = require ('./routes/compras.routes.js');
 const proveedoresRoutes = require('./routes/proveedores.routes.js');
 const categoriaProductosRoutes = require('./routes/categoriaProductos.routes.js');
 const ProductosRoutes = require('./routes/productos.routes.js');
-const ProductoImagenRoutes = require('./routes/producto-imagen.routes.js');
 const tallasRoutes = require('./routes/tallas.routes.js');
 const tamanoRoutes = require('./routes/tamano.routes.js');
-const ImagenesRoutes = require('./routes/imagenes.routes.js');
 const correoRoutes = require('./routes/correo.routes.js');
 const detalledevolucionesRoutes = require('./routes/detalleDevolucion.routes.js')
 const empleadoServicioRoutes = require ('./routes/empleadoServicio.routes.js')
@@ -42,7 +40,6 @@ router.use ('/compras', comprasRoutes);
 
 router.use('/proveedores', proveedoresRoutes);
 router.use('/productos', ProductosRoutes);
-router.use('/producto-imagen', ProductoImagenRoutes);
 
 router.use('/tallas', tallasRoutes);
 router.use('/tamano', tamanoRoutes);
@@ -63,7 +60,6 @@ router.use('/detalledevolucion',detalledevolucionesRoutes)
 router.use('/empleadoservicios', empleadoServicioRoutes)
 router.use('/servicio-imagen', servicioImagenRoutes)
 
-router.use('/imagenes', ImagenesRoutes);
 
 router.use('/correo', correoRoutes);
 

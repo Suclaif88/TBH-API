@@ -1,4 +1,4 @@
-const { Tamano, Tamano_Insumos, Insumos  } = require('../models');
+const { Tamano, Tamano_Insumos, Insumos, Producto_Tamano  } = require('../models');
 
 
 
@@ -137,19 +137,33 @@ exports.actualizarTamano = async (req, res) => {
 
 // Eliminar un Tamaño
 exports.eliminarTamano = async (req, res) => {
-try {
-    const id = req.params.id;
+    try {   
+        const id = req.params.id;
 
-    const tamano = await Tamano.findByPk(id);
-    if (!tamano) {
-    return res.status(404).json({ status:'error', message: 'Tamaño no Encontrado' });
+        const tamano = await Tamano.findByPk(id);
+        if (!tamano) {
+            return res.status(404).json({ status: 'error', message: 'Tamaño no encontrado' });
+        }
+
+        // Verificar si hay productos que usan este tamaño
+        const existeRelacion = await Producto_Tamano.findOne({
+            where: { Id_Tamano: id }
+        });
+
+        if (existeRelacion) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'No se puede eliminar el tamaño porque está asociado a uno o más productos'
+            });
+        }
+
+        // Si no tiene relaciones, eliminar
+        await tamano.destroy();
+        res.json({ status: 'success', mensaje: 'Tamaño eliminado permanentemente' });
+
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
     }
-
-    await tamano.destroy();
-    res.json({ status:'success', mensaje: 'Tamaño Eliminado Permanentemente' });
-} catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
-}
 };
 
 // Cambiar el estado de un Tamaño (activar o desactivar)

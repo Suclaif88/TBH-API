@@ -1,92 +1,58 @@
 const cloudinary = require("../config/cloudinaryConfig");
 const fs = require("fs");
 const path = require("path");
-const { Imagenes } = require('../models');
+const { Imagenes, Producto_Imagen } = require('../models');
 
 
-const subirMultiplesImagenes = async (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ status: 'error', message: "No se enviaron imágenes" });
-    }
+async function subirImagenesDesdeArchivos(files) {
+  const resultados = [];
 
-    const resultados = [];
+  for (const file of files) {
+    const tempFilePath = path.join(__dirname, `../../temp-${Date.now()}.webp`);
+    fs.writeFileSync(tempFilePath, file.buffer);
 
-    for (const file of req.files) {
-      const tempFilePath = path.join(__dirname, `../../temp-${Date.now()}.webp`);
-      fs.writeFileSync(tempFilePath, file.buffer);
-
-      const resultado = await cloudinary.uploader.upload(tempFilePath, {
-        folder: "imagenes",
-        format: "webp"
-      });
-
-      fs.unlinkSync(tempFilePath);
-
-      const nuevaImagen = await Imagenes.create({
-        URL: resultado.secure_url
-      });
-
-      resultados.push({
-        id: nuevaImagen.Id_Imagenes,
-        url: nuevaImagen.URL
-      });
-    }
-
-    res.json({
-      status: 'success',
-      imagenes: resultados
+    const resultado = await cloudinary.uploader.upload(tempFilePath, {
+      folder: "imagenes",
+      format: "webp"
     });
 
-  } catch (error) {
-    console.error("Error al subir imágenes:", error);
-    res.status(500).json({ status: 'error', message: error.message });
-  }
-};
+    fs.unlinkSync(tempFilePath);
 
-const eliminarMultiplesImagenes = async (req, res) => {
-  const { ids } = req.body;
+    const nuevaImagen = await Imagenes.create({
+      URL: resultado.secure_url
+    });
 
-  if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ status: 'error', message: 'Debes enviar un array de IDs' });
-  }
-
-  if (ids.length > 5) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Solo puedes eliminar hasta 5 imágenes por solicitud'
+    resultados.push({
+      Id_Imagenes: nuevaImagen.Id_Imagenes,
+      URL: nuevaImagen.URL
     });
   }
 
-  try {
-    const resultados = [];
+  return resultados;
+}
 
-    for (const id of ids) {
-      const imagen = await Imagenes.findByPk(id);
+async function eliminarImagenesPorIdsArray(ids) {
+  const resultados = [];
 
-      if (imagen) {
-        const urlParts = imagen.URL.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        const publicId = `imagenes/${fileName.split('.')[0]}`;
+  for (const id of ids) {
+    const imagen = await Imagenes.findByPk(id);
 
-        await cloudinary.uploader.destroy(publicId);
-        await imagen.destroy();
+    if (imagen) {
+      const urlParts = imagen.URL.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const publicId = `imagenes/${fileName.split('.')[0]}`;
 
-        resultados.push({ id, status: 'eliminado' });
-      } else {
-        resultados.push({ id, status: 'no encontrada' });
-      }
+      await cloudinary.uploader.destroy(publicId);
+      await imagen.destroy();
+      await Producto_Imagen.destroy({ where: { Id_Imagenes: id } });
+
+      resultados.push({ id, status: 'eliminado' });
+    } else {
+      resultados.push({ id, status: 'no encontrada' });
     }
-
-    res.json({
-      status: 'success',
-      resultados
-    });
-
-  } catch (error) {
-    console.error('Error al eliminar múltiples imágenes:', error);
-    res.status(500).json({ status: 'error', message: error.message });
   }
-};
 
-module.exports = { subirMultiplesImagenes, eliminarMultiplesImagenes };
+  return resultados;
+}
+
+module.exports = { subirImagenesDesdeArchivos, eliminarImagenesPorIdsArray  };

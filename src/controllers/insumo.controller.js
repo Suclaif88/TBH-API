@@ -72,7 +72,7 @@ exports.obtenerInsumosBase = async (req, res) => {
 
 exports.obtenerInsumosFrascos = async (req, res) => {
   try {
-    const insumosBase = await Insumos.findAll({
+    const insumosFrasco = await Insumos.findAll({
       where: {
         Estado: true
       },
@@ -87,13 +87,34 @@ exports.obtenerInsumosFrascos = async (req, res) => {
       ]
     });
 
-    res.json({ status: 'success', data: insumosBase });
+    res.json({ status: 'success', data: insumosFrasco });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
+exports.obtenerInsumosFragancia = async (req, res) => {
+  try {
+    const insumosFragancia = await Insumos.findAll({
+      where: {
+        Estado: true
+      },
+      include: [
+        {
+          model: Categoria_Insumos,
+          as: "Id_Categoria_Insumos_Categoria_Insumo",
+          where: {
+            Nombre: "Fragancia"
+          }
+        }
+      ]
+    });
 
+    res.json({ status: 'success', data: insumosFragancia });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
 
 exports.crearInsumo = async (req, res) => {
   try {
