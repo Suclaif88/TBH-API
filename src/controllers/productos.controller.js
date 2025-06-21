@@ -1,4 +1,6 @@
-const { Categoria_Productos, Productos, Tamano, Producto_Tamano, Producto_Tamano_Insumos, Insumos, Categoria_Insumos, Tamano_Insumos, Tallas, Producto_Tallas, Detalle_Compra_Productos, Detalle_Venta } = require('../models');
+const { Categoria_Productos, Productos, Tamano, Producto_Tamano, Producto_Tamano_Insumos, Insumos, Categoria_Insumos, Tamano_Insumos, Tallas, Producto_Tallas, Detalle_Compra_Productos, Detalle_Venta, Imagenes, Producto_Imagen } = require('../models');
+const { subirImagenesDesdeArchivos, eliminarImagenesPorIdsArray } = require('../controllers/imagenes.controller');
+
 
 async function asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra) {
   const tamanos = await Tamano.findAll({ where: { Estado: true } });
@@ -94,24 +96,46 @@ async function eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume
 exports.crearProducto = async (req, res) => {
   try {
     const { InsumoExtra, ...productoData } = req.body;
+    const archivos = req.files || [];
 
+    // Crear producto
     const nuevoProducto = await Productos.create(productoData);
     const Id_Productos = nuevoProducto.Id_Productos;
 
+    // Categoría
     const categoria = await Categoria_Productos.findByPk(productoData.Id_Categoria_Producto);
     if (!categoria) {
       return res.status(404).json({ status: 'error', message: 'Categoría no encontrada' });
     }
 
     if (categoria.Nombre === 'Perfume' && InsumoExtra) {
-      await asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra);
+      await asignarInsumoExtraSiPerfume(Id_Productos, JSON.parse(InsumoExtra));
     }
 
     if (categoria.Es_Ropa) {
       await asignarTallasSiEsRopa(Id_Productos, productoData.Id_Categoria_Producto);
     }
 
-    res.json({ status: 'success', data: nuevoProducto });
+    // Subir imágenes si vienen
+    const imagenesSubidas = archivos.length > 0
+      ? await subirImagenesDesdeArchivos(archivos)
+      : [];
+
+    // Relacionarlas
+    if (imagenesSubidas.length > 0) {
+      const relaciones = imagenesSubidas.map(img => ({
+        Id_Productos,
+        Id_Imagenes: img.Id_Imagenes
+      }));
+
+      await Producto_Imagen.bulkCreate(relaciones);
+    }
+
+    res.json({
+      status: 'success',
+      data: nuevoProducto,
+      imagenes: imagenesSubidas
+    });
 
   } catch (error) {
     console.error(error);
@@ -123,13 +147,15 @@ exports.actualizarProducto = async (req, res) => {
   try {
     const { id } = req.params;
     const Id_Productos = id;
-    const { InsumoExtra, ...nuevosDatos } = req.body;
+
+    const { InsumoExtra, ImagenesEliminadas, ...nuevosDatos } = req.body;
 
     const producto = await Productos.findByPk(Id_Productos);
     if (!producto) {
       return res.status(404).json({ status: 'error', message: 'Producto no encontrado' });
     }
 
+    // Validar cambio de categoría
     const categoriaAnterior = await Categoria_Productos.findByPk(producto.Id_Categoria_Producto);
     const categoriaNueva = await Categoria_Productos.findByPk(nuevosDatos.Id_Categoria_Producto);
 
@@ -142,29 +168,53 @@ exports.actualizarProducto = async (req, res) => {
     if (cambioCategoria && esPerfume && !eraPerfume && producto.Stock > 0) {
       return res.status(400).json({
         status: 'error',
-        message: `No puedes cambiar a "Perfume" si el stock del producto: ${producto.Stock}`
+        message: `No puedes cambiar a "Perfume" si el producto tiene stock (${producto.Stock})`
       });
     }
 
+    // Actualizar datos principales
     await producto.update(nuevosDatos);
 
+    // Si hay cambio de categoría, eliminar asociaciones previas
     if (cambioCategoria) {
       await eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume, eraRopa);
+
       if (esRopa) {
         await asignarTallasSiEsRopa(Id_Productos, nuevosDatos.Id_Categoria_Producto);
       }
     }
 
+    // Si sigue siendo perfume, reasignar insumo extra
     if (esPerfume && InsumoExtra) {
       await asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra);
     }
 
-    res.json({ status: 'success', data: producto });
+    // Eliminar imágenes si vienen
+    if (ImagenesEliminadas) {
+      const ids = JSON.parse(ImagenesEliminadas);
+      if (Array.isArray(ids) && ids.length > 0) {
+        await eliminarImagenesPorIdsArray(ids);
+      }
+    }
+
+    // Subir imágenes nuevas si vienen
+    if (req.files && req.files.length > 0) {
+      const nuevasImagenes = await subirImagenesDesdeArchivos(req.files);
+
+      for (const img of nuevasImagenes) {
+        await Producto_Imagen.create({
+          Id_Productos,
+          Id_Imagenes: img.Id_Imagenes
+        });
+      }
+    }
+
+    return res.json({ status: 'success', message: 'Producto actualizado correctamente' });
 
   } catch (error) {
     console.error(error);
     const msg = error.message.includes('superan su capacidad') ? error.message : 'Error interno';
-    res.status(500).json({ status: 'error', message: msg });
+    return res.status(500).json({ status: 'error', message: msg });
   }
 };
 
@@ -208,6 +258,17 @@ exports.obtenerProductos = async (req, res) => {
           ],
           required: false,
         },
+        {
+          model: Producto_Imagen,
+          as: "Producto_Imagens",
+          include:[
+            {
+              model: Imagenes,
+              as: "Id_Imagenes_Imagene",
+              attributes: ['Id_Imagenes', 'URL']
+            },
+          ],
+        },
       ],
     });
 
@@ -245,6 +306,10 @@ exports.obtenerProductos = async (req, res) => {
         Stock: producto.Stock,
         Estado: producto.Estado,
         Detalles,
+        Imagenes: (producto.Producto_Imagens || []).map(pi => ({
+          Id_Imagenes: pi.Id_Imagenes_Imagene?.Id_Imagenes,
+          URL: pi.Id_Imagenes_Imagene?.URL
+          }))
       };
     });
 
@@ -266,7 +331,18 @@ exports.obtenerProductoById = async (req, res) => {
           model: Categoria_Productos,
           as: 'Id_Categoria_Producto_Categoria_Producto',
           attributes: ['Nombre', 'Es_Ropa']
-        }
+        },
+        {
+          model: Producto_Imagen,
+          as: "Producto_Imagens",
+          include:[
+            {
+              model: Imagenes,
+              as: "Id_Imagenes_Imagene",
+              attributes: ['Id_Imagenes', 'URL']
+            },
+          ],
+        },
       ]
     });
 
@@ -321,7 +397,11 @@ exports.obtenerProductoById = async (req, res) => {
         Nombre: categoria?.Nombre,
         Es_Ropa: categoria?.Es_Ropa
       },
-      InsumoExtra: insumoExtra
+      InsumoExtra: insumoExtra,
+        Imagenes: (producto.Producto_Imagens || []).map(pi => ({
+          Id_Imagenes: pi.Id_Imagenes_Imagene?.Id_Imagenes,
+          URL: pi.Id_Imagenes_Imagene?.URL
+        }))
     };
 
     res.json({ status: 'success', data: respuesta });
