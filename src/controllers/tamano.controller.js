@@ -1,8 +1,5 @@
 const { Tamano, Tamano_Insumos, Insumos, Producto_Tamano  } = require('../models');
 
-
-
-
 exports.obtenerTamanos = async (req, res) => {
 	try {
 		const tamanos = await Tamano.findAll({
@@ -14,21 +11,33 @@ exports.obtenerTamanos = async (req, res) => {
 					include: [
 						{
 							model: Insumos,
-							as: 'Id_Insumos_Insumo', 
+							as: 'Id_Insumos_Insumo',
 							attributes: ['Nombre'],
 						},
 					],
 				},
 			],
 		});
-		res.json({ status: "success", data: tamanos });
+
+		const data = tamanos.map(t => ({
+			Id_Tamano: t.Id_Tamano,
+			Nombre: t.Nombre,
+            Cantidad_Maxima: t.Cantidad_Maxima,
+            Precio_Venta: t.Precio_Venta,
+            Estado: t.Estado,
+			Insumos: t.Tamano_Insumos.map(insumo => ({
+				Id_Insumos: insumo.Id_Insumos,
+				Nombre: insumo.Id_Insumos_Insumo?.Nombre || '',
+				Cantidad: insumo.Cantidad
+			}))
+		}));
+
+		res.json({ status: "success", data });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ status: "error", message: error.message });
 	}
 };
-
-
 
 
 // Obtener un Tamaño por ID

@@ -13,7 +13,8 @@ async function subirImagenesDesdeArchivos(files) {
 
     const resultado = await cloudinary.uploader.upload(tempFilePath, {
       folder: "imagenes",
-      format: "webp"
+      format: "webp",
+      quality: "auto:best",
     });
 
     fs.unlinkSync(tempFilePath);
@@ -30,6 +31,7 @@ async function subirImagenesDesdeArchivos(files) {
 
   return resultados;
 }
+
 
 async function eliminarImagenesPorIdsArray(ids) {
   const resultados = [];
