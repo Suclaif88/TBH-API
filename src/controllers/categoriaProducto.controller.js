@@ -1,13 +1,20 @@
 const { Categoria_Productos, Productos } = require('../models');
 
-
-// Obtener todas las categorías (sin importar el estado)
 exports.obtenerCategorias = async (req, res) => {
   try {
-    const categorias = await Categoria_Productos.findAll();
+    const categorias = await Categoria_Productos.findAll({
+      include: [
+        {
+          model: Productos,
+          as: "Productos",
+          attributes: ['Id_Productos', 'Nombre'], 
+        },
+      ],
+    });
+
     res.json({ status: 'success', data: categorias });
   } catch (error) {
-    es.status(500).json({ status: 'error', message: error.message });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
