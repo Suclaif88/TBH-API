@@ -1,5 +1,7 @@
 const { Categoria_Productos, Productos, Tamano, Producto_Tamano, Producto_Tamano_Insumos, Insumos, Categoria_Insumos, Tamano_Insumos, Tallas, Producto_Tallas, Detalle_Compra_Productos, Detalle_Venta, Imagenes, Producto_Imagen } = require('../models');
 const { subirImagenesDesdeArchivos, eliminarImagenesPorIdsArray } = require('../controllers/imagenes.controller');
+const { Op } = require('sequelize');
+
 
 
 async function asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra) {
@@ -320,6 +322,67 @@ exports.obtenerProductos = async (req, res) => {
   }
 };
 
+exports.obtenerProductosCompras = async (req, res) => {
+  try {
+    const productos = await Productos.findAll({
+      where: {
+        Estado: true
+      },
+      include: [
+        {
+          model: Categoria_Productos,
+          as: "Id_Categoria_Producto_Categoria_Producto",
+          where: {
+            Id_Categoria_Producto: {
+              [Op.ne]: 3,
+            },
+          },
+        },
+        {
+          model: Producto_Tallas,
+          as: "Producto_Tallas",
+          include: [
+            {
+              model: Tallas,
+              as: "Id_Tallas_Talla",
+            },
+          ],
+          required: false,
+        },
+      ],
+    });
+
+    const resultado = productos.map((producto) => {
+      const categoria = producto.Id_Categoria_Producto_Categoria_Producto;
+      let Detalles = {};
+
+      if (categoria?.Es_Ropa) {
+        Detalles.tallas = (producto.Producto_Tallas || []).map((pt) => ({
+          Id_Producto_Tallas: pt.Id_Producto_Tallas,
+          Nombre: pt.Id_Tallas_Talla?.Nombre,
+        }));
+      }
+
+      return {
+        Id_Productos: producto.Id_Productos,
+        Nombre: producto.Nombre,
+        Categoria: categoria?.Nombre,
+        Descripcion: producto.Descripcion,
+        Precio_Venta: producto.Precio_Venta,
+        Precio_Compra: producto.Precio_Compra,
+        Es_Ropa: categoria?.Es_Ropa,
+        Stock: producto.Stock,
+        Estado: producto.Estado,
+        Detalles,
+      };
+    });
+
+    res.json({ status: "success", data: resultado });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: error.message });
+  }
+};
 
 exports.obtenerProductoById = async (req, res) => {
   try {

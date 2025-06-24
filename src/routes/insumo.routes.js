@@ -3,6 +3,7 @@ const {
   crearInsumo,
   listarInsumos,
   obtenerInsumoPorId,
+  obtenerInsumosActivos,
   obtenerInsumosBase,
   obtenerInsumosFrascos,
   obtenerInsumosFragancia,
@@ -19,6 +20,7 @@ router.use(verificarToken);
 router.use(autorizar('Insumos'));
 
 router.get('/', listarInsumos);
+router.get('/activos', obtenerInsumosActivos);
 router.get('/base', obtenerInsumosBase);
 router.get('/frascos', obtenerInsumosFrascos);
 router.get('/fragancias', obtenerInsumosFragancia);
