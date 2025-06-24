@@ -2,6 +2,7 @@ const { Router } = require('express');
 const {
     obtenerProductos,
     obtenerProductoById,
+    obtenerProductosCompras,
     crearProducto,
     eliminarProducto,
     actualizarProducto,
@@ -17,6 +18,7 @@ router.use(verificarToken);
 router.use(autorizar('Productos'));
 
 router.get('/', obtenerProductos);
+router.get('/compras', obtenerProductosCompras);
 router.get('/:id', obtenerProductoById);
 router.post('/', upload.array('imagenes', 5), crearProducto);
 router.put('/:id', upload.array('imagenes', 5), actualizarProducto);

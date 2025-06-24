@@ -47,6 +47,20 @@ exports.obtenerInsumoPorId = async (req, res) => {
   }
 };
 
+exports.obtenerInsumosActivos = async (req, res) => {
+  try {
+    const insumosActivos = await Insumos.findAll({
+      where: {
+        Estado: true
+      }
+    });
+
+    res.json({ status: 'success', data: insumosActivos });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
 exports.obtenerInsumosBase = async (req, res) => {
   try {
     const insumosBase = await Insumos.findAll({

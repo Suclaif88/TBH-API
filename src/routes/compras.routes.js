@@ -16,7 +16,6 @@ router.use(verificarToken);
 router.use(autorizar('Compras'));
 
 router.post("/", crearCompra);
-router.post("/detalles-compra", crearDetalles);
 router.get("/", obtenerCompras);
 router.get("/:id", obtenerCompraPorId);
 router.get("/detalles/:id", obtenerCompraConDetalles);
