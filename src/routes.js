@@ -17,7 +17,6 @@ const empleadosRoutes = require('./routes/empleados.routes.js');
 const devolucionesRoutes = require('./routes/devoluciones.routes.js');
 const agendamientoRoutes= require('./routes/agendamiento.routes.js');
 const serviciosRoutes= require ('./routes/servicios.routes.js' );
-const novedadesRoutes= require ('./routes/novedades.routes.js');
 
 const comprasRoutes = require ('./routes/compras.routes.js');
 
@@ -30,6 +29,7 @@ const correoRoutes = require('./routes/correo.routes.js');
 const detalledevolucionesRoutes = require('./routes/detalleDevolucion.routes.js')
 const empleadoServicioRoutes = require ('./routes/empleadoServicio.routes.js')
 const servicioImagenRoutes = require ('./routes/servicio_imagen-routes.js')
+const novedadeshorariosRoutes = require('./routes/novedades_horarios.routes.js')
 
 router.use('/auth', authRoutes);
 router.use('/me', meRoutes);   
@@ -55,11 +55,10 @@ router.use('/devoluciones',devolucionesRoutes);
 router.use('/clientes', clientesRoutes);
 router.use('/agendamiento', agendamientoRoutes);
 router.use('/servicios', serviciosRoutes);
-router.use('/novedades', novedadesRoutes)
 router.use('/detalledevolucion',detalledevolucionesRoutes)
 router.use('/empleadoservicios', empleadoServicioRoutes)
 router.use('/servicio-imagen', servicioImagenRoutes)
-
+router.use('/novedadeshorarios',novedadeshorariosRoutes)
 
 router.use('/correo', correoRoutes);
 
