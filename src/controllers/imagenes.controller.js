@@ -4,7 +4,7 @@ const path = require("path");
 const { Imagenes, Producto_Imagen } = require('../models');
 
 
-async function subirImagenesDesdeArchivos(files) {
+async function subirImagenesDesdeArchivos(files, transaction = null) {
   const resultados = [];
 
   for (const file of files) {
@@ -21,7 +21,7 @@ async function subirImagenesDesdeArchivos(files) {
 
     const nuevaImagen = await Imagenes.create({
       URL: resultado.secure_url
-    });
+    }, { transaction });
 
     resultados.push({
       Id_Imagenes: nuevaImagen.Id_Imagenes,
@@ -33,11 +33,11 @@ async function subirImagenesDesdeArchivos(files) {
 }
 
 
-async function eliminarImagenesPorIdsArray(ids) {
+async function eliminarImagenesPorIdsArray(ids, transaction) {
   const resultados = [];
 
   for (const id of ids) {
-    const imagen = await Imagenes.findByPk(id);
+    const imagen = await Imagenes.findByPk(id, { transaction });
 
     if (imagen) {
       const urlParts = imagen.URL.split('/');
@@ -45,8 +45,9 @@ async function eliminarImagenesPorIdsArray(ids) {
       const publicId = `imagenes/${fileName.split('.')[0]}`;
 
       await cloudinary.uploader.destroy(publicId);
-      await imagen.destroy();
-      await Producto_Imagen.destroy({ where: { Id_Imagenes: id } });
+
+      await Producto_Imagen.destroy({ where: { Id_Imagenes: id }, transaction });
+      await imagen.destroy({ transaction });
 
       resultados.push({ id, status: 'eliminado' });
     } else {
@@ -56,5 +57,6 @@ async function eliminarImagenesPorIdsArray(ids) {
 
   return resultados;
 }
+
 
 module.exports = { subirImagenesDesdeArchivos, eliminarImagenesPorIdsArray  };

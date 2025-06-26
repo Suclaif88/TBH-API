@@ -1,25 +1,30 @@
 const { Categoria_Productos, Productos, Tamano, Producto_Tamano, Producto_Tamano_Insumos, Insumos, Categoria_Insumos, Tamano_Insumos, Tallas, Producto_Tallas, Detalle_Compra_Productos, Detalle_Venta, Imagenes, Producto_Imagen } = require('../models');
 const { subirImagenesDesdeArchivos, eliminarImagenesPorIdsArray } = require('../controllers/imagenes.controller');
 const { Op } = require('sequelize');
+const { sequelize } = require("../config/db");
 
 
 
-async function asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra) {
-  const tamanos = await Tamano.findAll({ where: { Estado: true } });
+async function asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra, transaction) {
+  const tamanos = await Tamano.findAll({
+    where: { Estado: true },
+    transaction
+  });
 
   for (const tamano of tamanos) {
     let productoTamano = await Producto_Tamano.findOne({
       where: {
         Id_Productos,
         Id_Tamano: tamano.Id_Tamano
-      }
+      },
+      transaction
     });
 
     if (!productoTamano) {
       productoTamano = await Producto_Tamano.create({
         Id_Productos,
         Id_Tamano: tamano.Id_Tamano
-      });
+      }, { transaction });
     }
 
     const insumosBase = await Tamano_Insumos.findAll({
@@ -38,7 +43,8 @@ async function asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra) {
             }
           ]
         }
-      ]
+      ],
+      transaction
     });
 
     const sumaBase = insumosBase.reduce((acc, item) => acc + parseFloat(item.Cantidad), 0);
@@ -49,89 +55,115 @@ async function asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra) {
     }
 
     const existente = await Producto_Tamano_Insumos.findOne({
-      where: { Id_Producto_Tamano: productoTamano.Id_Producto_Tamano }
+      where: { Id_Producto_Tamano: productoTamano.Id_Producto_Tamano },
+      transaction
     });
 
     if (existente) {
       await existente.update({
         Id_Insumos: InsumoExtra.Id_Insumos,
         Cantidad_Consumo: cantidadRestante
-      });
+      }, { transaction });
     } else {
       await Producto_Tamano_Insumos.create({
         Id_Producto_Tamano: productoTamano.Id_Producto_Tamano,
         Id_Insumos: InsumoExtra.Id_Insumos,
         Cantidad_Consumo: cantidadRestante
-      });
+      }, { transaction });
     }
   }
 }
 
-async function asignarTallasSiEsRopa(Id_Productos, Id_Categoria_Producto) {
-  const tallas = await Tallas.findAll({
-    where: { Id_Categoria_Producto }
-  });
 
-  const relaciones = tallas.map(talla => ({
+async function asignarTallasSiEsRopa(Id_Productos, TallasSeleccionadas, transaction) {
+  if (!Array.isArray(TallasSeleccionadas) || TallasSeleccionadas.length === 0) {
+    throw new Error('No se proporcionaron tallas válidas para asociar');
+  }
+
+  const relaciones = TallasSeleccionadas.map(obj => ({
     Id_Productos,
-    Id_Tallas: talla.Id_Tallas,
+    Id_Tallas: obj.Id_Tallas,
     Stock: 0
   }));
 
-  await Producto_Tallas.bulkCreate(relaciones);
+  await Producto_Tallas.bulkCreate(relaciones, { transaction });
 }
 
-async function eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume, eraRopa) {
+
+async function eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume, eraRopa, transaction) {
   if (eraPerfume) {
-    const productoTamanos = await Producto_Tamano.findAll({ where: { Id_Productos } });
+    const productoTamanos = await Producto_Tamano.findAll({ 
+      where: { Id_Productos },
+      transaction
+    });
+
     const idsProductoTamanos = productoTamanos.map(pt => pt.Id_Producto_Tamano);
 
-    await Producto_Tamano_Insumos.destroy({ where: { Id_Producto_Tamano: idsProductoTamanos } });
-    await Producto_Tamano.destroy({ where: { Id_Productos } });
+    if (idsProductoTamanos.length > 0) {
+      await Producto_Tamano_Insumos.destroy({ 
+        where: { Id_Producto_Tamano: idsProductoTamanos },
+        transaction 
+      });
+    }
+
+    await Producto_Tamano.destroy({ 
+      where: { Id_Productos },
+      transaction 
+    });
   }
 
   if (eraRopa) {
-    await Producto_Tallas.destroy({ where: { Id_Productos } });
+    await Producto_Tallas.destroy({ 
+      where: { Id_Productos },
+      transaction 
+    });
   }
 }
 
 exports.crearProducto = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
-    const { InsumoExtra, ...productoData } = req.body;
+    const { InsumoExtra, TallasSeleccionadas, ...productoData } = req.body;
     const archivos = req.files || [];
 
-    // Crear producto
-    const nuevoProducto = await Productos.create(productoData);
+    // Crear producto dentro de la transacción
+    const nuevoProducto = await Productos.create(productoData, { transaction });
     const Id_Productos = nuevoProducto.Id_Productos;
 
-    // Categoría
-    const categoria = await Categoria_Productos.findByPk(productoData.Id_Categoria_Producto);
+    const categoria = await Categoria_Productos.findByPk(productoData.Id_Categoria_Producto, { transaction });
     if (!categoria) {
+      await transaction.rollback();
       return res.status(404).json({ status: 'error', message: 'Categoría no encontrada' });
     }
 
     if (categoria.Nombre === 'Perfume' && InsumoExtra) {
-      await asignarInsumoExtraSiPerfume(Id_Productos, JSON.parse(InsumoExtra));
+      await asignarInsumoExtraSiPerfume(Id_Productos, JSON.parse(InsumoExtra), transaction);
     }
 
-    if (categoria.Es_Ropa) {
-      await asignarTallasSiEsRopa(Id_Productos, productoData.Id_Categoria_Producto);
+    if (categoria.Es_Ropa && TallasSeleccionadas) {
+      const tallasArray = typeof TallasSeleccionadas === 'string'
+        ? JSON.parse(TallasSeleccionadas)
+        : TallasSeleccionadas;
+
+      await asignarTallasSiEsRopa(Id_Productos, tallasArray, transaction);
     }
 
-    // Subir imágenes si vienen
+    // Subir imágenes (fuera de la transacción)
     const imagenesSubidas = archivos.length > 0
       ? await subirImagenesDesdeArchivos(archivos)
       : [];
 
-    // Relacionarlas
     if (imagenesSubidas.length > 0) {
       const relaciones = imagenesSubidas.map(img => ({
         Id_Productos,
         Id_Imagenes: img.Id_Imagenes
       }));
 
-      await Producto_Imagen.bulkCreate(relaciones);
+      await Producto_Imagen.bulkCreate(relaciones, { transaction });
     }
+
+    // Commit si todo fue bien
+    await transaction.commit();
 
     res.json({
       status: 'success',
@@ -140,26 +172,28 @@ exports.crearProducto = async (req, res) => {
     });
 
   } catch (error) {
+    await transaction.rollback();
     console.error(error);
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
+
 exports.actualizarProducto = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { id } = req.params;
     const Id_Productos = id;
+    const { InsumoExtra, ImagenesEliminadas, TallasSeleccionadas, ...nuevosDatos } = req.body;
 
-    const { InsumoExtra, ImagenesEliminadas, ...nuevosDatos } = req.body;
-
-    const producto = await Productos.findByPk(Id_Productos);
+    const producto = await Productos.findByPk(Id_Productos, { transaction: t });
     if (!producto) {
+      await t.rollback();
       return res.status(404).json({ status: 'error', message: 'Producto no encontrado' });
     }
 
-    // Validar cambio de categoría
-    const categoriaAnterior = await Categoria_Productos.findByPk(producto.Id_Categoria_Producto);
-    const categoriaNueva = await Categoria_Productos.findByPk(nuevosDatos.Id_Categoria_Producto);
+    const categoriaAnterior = await producto.getId_Categoria_Producto_Categoria_Producto({ transaction: t });
+    const categoriaNueva = await producto.sequelize.models.Categoria_Productos.findByPk(nuevosDatos.Id_Categoria_Producto, { transaction: t });
 
     const cambioCategoria = categoriaAnterior?.Id_Categoria_Producto !== categoriaNueva?.Id_Categoria_Producto;
     const eraPerfume = categoriaAnterior?.Nombre === 'Perfume';
@@ -168,53 +202,68 @@ exports.actualizarProducto = async (req, res) => {
     const esRopa = categoriaNueva?.Es_Ropa;
 
     if (cambioCategoria && esPerfume && !eraPerfume && producto.Stock > 0) {
+      await t.rollback();
       return res.status(400).json({
         status: 'error',
         message: `No puedes cambiar a "Perfume" si el producto tiene stock (${producto.Stock})`
       });
     }
 
-    // Actualizar datos principales
-    await producto.update(nuevosDatos);
+    await producto.update(nuevosDatos, { transaction: t });
 
-    // Si hay cambio de categoría, eliminar asociaciones previas
     if (cambioCategoria) {
-      await eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume, eraRopa);
+      await eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume, eraRopa, t);
 
-      if (esRopa) {
-        await asignarTallasSiEsRopa(Id_Productos, nuevosDatos.Id_Categoria_Producto);
+      if (esRopa && TallasSeleccionadas) {
+        const tallasArray = typeof TallasSeleccionadas === 'string'
+          ? JSON.parse(TallasSeleccionadas)
+          : TallasSeleccionadas;
+
+        await asignarTallasSiEsRopa(Id_Productos, tallasArray, t);
       }
     }
 
-    // Si sigue siendo perfume, reasignar insumo extra
-    if (esPerfume && InsumoExtra) {
-      await asignarInsumoExtraSiPerfume(Id_Productos, InsumoExtra);
+    if (!cambioCategoria && esRopa && TallasSeleccionadas) {
+      const tallasArray = typeof TallasSeleccionadas === 'string'
+        ? JSON.parse(TallasSeleccionadas)
+        : TallasSeleccionadas;
+
+      await producto.sequelize.models.Producto_Tallas.destroy({ where: { Id_Productos }, transaction: t });
+      await asignarTallasSiEsRopa(Id_Productos, tallasArray, t);
     }
 
-    // Eliminar imágenes si vienen
+    const insumoExtraParsed = typeof InsumoExtra === 'string'
+      ? JSON.parse(InsumoExtra)
+      : InsumoExtra;
+
+    if (esPerfume && insumoExtraParsed) {
+      await asignarInsumoExtraSiPerfume(Id_Productos, insumoExtraParsed, t);
+    }
+
     if (ImagenesEliminadas) {
       const ids = JSON.parse(ImagenesEliminadas);
       if (Array.isArray(ids) && ids.length > 0) {
-        await eliminarImagenesPorIdsArray(ids);
+        await eliminarImagenesPorIdsArray(ids, t);
       }
     }
 
-    // Subir imágenes nuevas si vienen
     if (req.files && req.files.length > 0) {
-      const nuevasImagenes = await subirImagenesDesdeArchivos(req.files);
+      const nuevasImagenes = await subirImagenesDesdeArchivos(req.files, t);
 
-      for (const img of nuevasImagenes) {
-        await Producto_Imagen.create({
-          Id_Productos,
-          Id_Imagenes: img.Id_Imagenes
-        });
-      }
+      const relaciones = nuevasImagenes.map(img => ({
+        Id_Productos,
+        Id_Imagenes: img.Id_Imagenes
+      }));
+
+      await Producto_Imagen.bulkCreate(relaciones, { transaction: t });
     }
 
+    await t.commit();
     return res.json({ status: 'success', message: 'Producto actualizado correctamente' });
 
   } catch (error) {
     console.error(error);
+    await t.rollback();
     const msg = error.message.includes('superan su capacidad') ? error.message : 'Error interno';
     return res.status(500).json({ status: 'error', message: msg });
   }
@@ -398,7 +447,7 @@ exports.obtenerProductoById = async (req, res) => {
         {
           model: Producto_Imagen,
           as: "Producto_Imagens",
-          include:[
+          include: [
             {
               model: Imagenes,
               as: "Id_Imagenes_Imagene",
@@ -406,6 +455,17 @@ exports.obtenerProductoById = async (req, res) => {
             },
           ],
         },
+        {
+          model: Producto_Tallas,
+          as: 'Producto_Tallas',
+          include: [
+            {
+              model: Tallas,
+              as: 'Id_Tallas_Talla',
+              attributes: ['Id_Tallas', 'Nombre']
+            }
+          ]
+        }
       ]
     });
 
@@ -416,7 +476,6 @@ exports.obtenerProductoById = async (req, res) => {
     const categoria = producto.Id_Categoria_Producto_Categoria_Producto;
     let insumoExtra = null;
 
-    // Si es Perfume, buscar insumo asociado
     if (categoria?.Nombre === 'Perfume') {
       const tamanos = await Producto_Tamano.findAll({
         where: { Id_Productos: producto.Id_Productos },
@@ -448,6 +507,14 @@ exports.obtenerProductoById = async (req, res) => {
       }
     }
 
+    let tallasSeleccionadas = [];
+    if (categoria?.Es_Ropa) {
+      tallasSeleccionadas = producto.Producto_Tallas?.map(pt => ({
+        Id_Tallas: pt.Id_Tallas_Talla?.Id_Tallas,
+        Nombre: pt.Id_Tallas_Talla?.Nombre
+      })) || [];
+    }
+
     const respuesta = {
       Id_Productos: producto.Id_Productos,
       Nombre: producto.Nombre,
@@ -461,10 +528,11 @@ exports.obtenerProductoById = async (req, res) => {
         Es_Ropa: categoria?.Es_Ropa
       },
       InsumoExtra: insumoExtra,
-        Imagenes: (producto.Producto_Imagens || []).map(pi => ({
-          Id_Imagenes: pi.Id_Imagenes_Imagene?.Id_Imagenes,
-          URL: pi.Id_Imagenes_Imagene?.URL
-        }))
+      TallasSeleccionadas: tallasSeleccionadas,
+      Imagenes: (producto.Producto_Imagens || []).map(pi => ({
+        Id_Imagenes: pi.Id_Imagenes_Imagene?.Id_Imagenes,
+        URL: pi.Id_Imagenes_Imagene?.URL
+      }))
     };
 
     res.json({ status: 'success', data: respuesta });
@@ -474,6 +542,7 @@ exports.obtenerProductoById = async (req, res) => {
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
+
 
 exports.eliminarProducto = async (req, res) => {
   try {

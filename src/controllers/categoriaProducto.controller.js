@@ -1,4 +1,4 @@
-const { Categoria_Productos, Productos } = require('../models');
+const { Categoria_Productos, Productos, Tallas } = require('../models');
 
 exports.obtenerCategorias = async (req, res) => {
   try {
@@ -9,6 +9,10 @@ exports.obtenerCategorias = async (req, res) => {
           as: "Productos",
           attributes: ['Id_Productos', 'Nombre'], 
         },
+        {
+          model: Tallas,
+          as: "Tallas",
+        }
       ],
     });
 
