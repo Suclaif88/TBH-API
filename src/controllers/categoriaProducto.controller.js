@@ -1,4 +1,5 @@
 const { Categoria_Productos, Productos, Tallas } = require('../models');
+const { Op } = require('sequelize');
 
 exports.obtenerCategorias = async (req, res) => {
   try {
@@ -53,6 +54,19 @@ try {
 // Crear nueva categoría
 exports.crearCategoria = async (req, res) => {
   try {
+    const { Nombre } = req.body;
+
+    const categoriaExistente = await Categoria_Productos.findOne({
+      where: { Nombre }
+    });
+
+    if (categoriaExistente) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe una categoría con ese nombre.'
+      });
+    }
+
     const nuevaCategoria = await Categoria_Productos.create(req.body);
     res.json({ status: 'success', data: nuevaCategoria });
   } catch (error) {
@@ -60,20 +74,39 @@ exports.crearCategoria = async (req, res) => {
   }
 };
 
+
 // Actualizar una categoría
 exports.actualizarCategoria = async (req, res) => {
   try {
     const id = req.params.id;
-    const [updated] = await Categoria_Productos.update(req.body, {
-      where: { Id_Categoria_Producto: id }
+    const { Nombre } = req.body;
+
+    const categoria = await Categoria_Productos.findByPk(id);
+    if (!categoria) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Categoría no encontrada'
+      });
+    }
+
+    const categoriaDuplicada = await Categoria_Productos.findOne({
+      where: {
+        Nombre,
+        Id_Categoria_Producto: { [Op.ne]: id }
+      }
     });
 
-    if (updated) {
-      const categoriaActualizada = await Categoria_Productos.findByPk(id);
-      res.json({ status: 'success', data: categoriaActualizada });
-    } else {
-      res.status(404).json({ status: 'error', message: 'Categoria no encontrada' });
+    if (categoriaDuplicada) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe otra categoría con ese nombre.'
+      });
     }
+
+    await categoria.update(req.body);
+
+    res.json({ status: 'success', data: categoria });
+
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }

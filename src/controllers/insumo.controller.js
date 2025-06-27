@@ -52,10 +52,24 @@ exports.obtenerInsumosActivos = async (req, res) => {
     const insumosActivos = await Insumos.findAll({
       where: {
         Estado: true
-      }
+      },
+      include: {
+        model: Categoria_Insumos,
+        as: 'Id_Categoria_Insumos_Categoria_Insumo',
+        attributes: ['Nombre'],
+      },
     });
 
-    res.json({ status: 'success', data: insumosActivos });
+    const respuesta = insumosActivos.map((insumo) => ({
+      Id_Insumos: insumo.Id_Insumos,
+      Nombre: insumo.Nombre,
+      Stock: insumo.Stock,
+      Estado: insumo.Estado,
+      Id_Categoria_Insumos: insumo.Id_Categoria_Insumos,
+      Categoria: insumo.Id_Categoria_Insumos_Categoria_Insumo?.Nombre || "Sin Categoría",
+    }));
+
+    res.json({ status: 'success', data: respuesta });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }

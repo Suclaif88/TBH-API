@@ -123,11 +123,26 @@ async function eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume
 exports.crearProducto = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
-    const { InsumoExtra, TallasSeleccionadas, ...productoData } = req.body;
+    const { InsumoExtra, TallasSeleccionadas, Nombre, ...productoData } = req.body;
     const archivos = req.files || [];
 
-    // Crear producto dentro de la transacción
-    const nuevoProducto = await Productos.create(productoData, { transaction });
+    const productoExistente = await Productos.findOne({
+      where: { Nombre },
+      transaction
+    });
+
+    if (productoExistente) {
+      await transaction.rollback();
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe un producto con ese nombre.'
+      });
+    }
+
+    const nuevoProducto = await Productos.create(
+      { Nombre, ...productoData },
+      { transaction }
+    );
     const Id_Productos = nuevoProducto.Id_Productos;
 
     const categoria = await Categoria_Productos.findByPk(productoData.Id_Categoria_Producto, { transaction });
@@ -148,7 +163,6 @@ exports.crearProducto = async (req, res) => {
       await asignarTallasSiEsRopa(Id_Productos, tallasArray, transaction);
     }
 
-    // Subir imágenes (fuera de la transacción)
     const imagenesSubidas = archivos.length > 0
       ? await subirImagenesDesdeArchivos(archivos)
       : [];
@@ -162,7 +176,6 @@ exports.crearProducto = async (req, res) => {
       await Producto_Imagen.bulkCreate(relaciones, { transaction });
     }
 
-    // Commit si todo fue bien
     await transaction.commit();
 
     res.json({
@@ -178,18 +191,33 @@ exports.crearProducto = async (req, res) => {
   }
 };
 
-
 exports.actualizarProducto = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { id } = req.params;
     const Id_Productos = id;
-    const { InsumoExtra, ImagenesEliminadas, TallasSeleccionadas, ...nuevosDatos } = req.body;
+    const { InsumoExtra, ImagenesEliminadas, TallasSeleccionadas, Nombre, ...nuevosDatos } = req.body;
 
     const producto = await Productos.findByPk(Id_Productos, { transaction: t });
     if (!producto) {
       await t.rollback();
       return res.status(404).json({ status: 'error', message: 'Producto no encontrado' });
+    }
+
+    const productoDuplicado = await Productos.findOne({
+      where: {
+        Nombre,
+        Id_Productos: { [Op.ne]: Id_Productos }
+      },
+      transaction: t
+    });
+
+    if (productoDuplicado) {
+      await t.rollback();
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe otro producto con ese nombre.'
+      });
     }
 
     const categoriaAnterior = await producto.getId_Categoria_Producto_Categoria_Producto({ transaction: t });
@@ -209,7 +237,14 @@ exports.actualizarProducto = async (req, res) => {
       });
     }
 
-    await producto.update(nuevosDatos, { transaction: t });
+    if (nuevosDatos.Precio_Venta === "null" || nuevosDatos.Precio_Venta === "") {
+      nuevosDatos.Precio_Venta = null;
+    }
+    if (nuevosDatos.Precio_Compra === "null" || nuevosDatos.Precio_Compra === "") {
+      nuevosDatos.Precio_Compra = null;
+    }
+
+    await producto.update({ Nombre, ...nuevosDatos }, { transaction: t });
 
     if (cambioCategoria) {
       await eliminarAsociacionesPorCambioDeCategoria(Id_Productos, eraPerfume, eraRopa, t);

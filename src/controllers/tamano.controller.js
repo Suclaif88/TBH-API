@@ -1,4 +1,5 @@
 const { Tamano, Tamano_Insumos, Insumos, Producto_Tamano  } = require('../models');
+const { Op } = require("sequelize");
 
 exports.obtenerTamanos = async (req, res) => {
 	try {
@@ -64,12 +65,26 @@ exports.obtenerTamanoPorId = async (req, res) => {
 
 // Crear nueva Tamaño
 exports.crearTamano = async (req, res) => {
-try {
-    const nuevoTamano = await Tamano.create(req.body);
-    res.json({ status: 'success', data: nuevoTamano });
-} catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
-}
+    try {
+        const { Nombre } = req.body;
+
+        const tamanoExistente = await Tamano.findOne({
+            where: { Nombre }
+        });
+
+        if (tamanoExistente) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Ya existe un tamaño con ese nombre.'
+            });
+        }
+
+        const nuevoTamano = await Tamano.create(req.body);
+        res.json({ status: 'success', data: nuevoTamano });
+
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
 };
 
 // Actualizar un Tamaño
@@ -82,60 +97,73 @@ exports.actualizarTamano = async (req, res) => {
         // 1) Verificar que el tamaño existe
         const tamano = await Tamano.findByPk(id, { transaction: t });
         if (!tamano) {
-        await t.rollback();
-        return res.status(404).json({ message: 'Tamaño no encontrado' });
+            await t.rollback();
+            return res.status(404).json({ message: 'Tamaño no encontrado' });
         }
 
-        // 2) Actualizar datos del tamaño (aunque no cambie nada, no abortamos)
+        // 2) Verificar que no haya otro tamaño con el mismo nombre
+        const duplicado = await Tamano.findOne({
+            where: {
+                Nombre,
+                Id_Tamano: { [Op.ne]: id } // otro registro con el mismo nombre
+            },
+            transaction: t
+        });
+
+        if (duplicado) {
+            await t.rollback();
+            return res.status(400).json({ message: 'Ya existe un tamaño con ese nombre.' });
+        }
+
+        // 3) Actualizar datos del tamaño
         await tamano.update(
-        { Nombre, Precio_Venta, Cantidad_Maxima, Estado },
-        { transaction: t }
+            { Nombre, Precio_Venta, Cantidad_Maxima, Estado },
+            { transaction: t }
         );
 
-        // 3) Leer relaciones actuales
+        // 4) Leer relaciones actuales
         const actuales = await Tamano_Insumos.findAll({
-        where: { Id_Tamano: id },
-        transaction: t
+            where: { Id_Tamano: id },
+            transaction: t
         });
         const actualesMap = new Map(actuales.map(r => [r.Id_Insumos, r]));
 
-        // 4) Procesar insumos entrantes
+        // 5) Procesar insumos entrantes
         for (const i of insumos) {
-        const clave = i.Id_Insumos;
-        const cantidad = Number(i.Cantidad);
+            const clave = i.Id_Insumos;
+            const cantidad = Number(i.Cantidad);
 
-        if (actualesMap.has(clave)) {
-            // — existe: actualizar si cambió
-            const rel = actualesMap.get(clave);
-            if (Number(rel.Cantidad) !== cantidad) {
-            await Tamano_Insumos.update(
-                { Cantidad: cantidad },
-                {
-                where: { Id_Tamano: id, Id_Insumos: clave },
-                transaction: t
+            if (actualesMap.has(clave)) {
+                const rel = actualesMap.get(clave);
+                if (Number(rel.Cantidad) !== cantidad) {
+                    await Tamano_Insumos.update(
+                        { Cantidad: cantidad },
+                        {
+                        where: { Id_Tamano: id, Id_Insumos: clave },
+                        transaction: t
+                        }
+                    );
                 }
-            );
+                actualesMap.delete(clave);
+            } else {
+                await Tamano_Insumos.create(
+                    { Id_Tamano: id, Id_Insumos: clave, Cantidad: cantidad },
+                    { transaction: t }
+                );
             }
-            actualesMap.delete(clave);
-        } else {
-            // — no existía: crear nueva relación
-            await Tamano_Insumos.create(
-            { Id_Tamano: id, Id_Insumos: clave, Cantidad: cantidad },
-            { transaction: t }
-            );
-        }
         }
 
-        // 5) Borrar las relaciones que quedaron “sobrando”
+        // 6) Eliminar relaciones que ya no están
         for (const insumoId of actualesMap.keys()) {
-        await Tamano_Insumos.destroy({
-            where: { Id_Tamano: id, Id_Insumos: insumoId },
-            transaction: t
-        });
+            await Tamano_Insumos.destroy({
+                where: { Id_Tamano: id, Id_Insumos: insumoId },
+                transaction: t
+            });
         }
 
         await t.commit();
         return res.json({ message: 'Tamaño y relaciones actualizadas correctamente' });
+
     } catch (error) {
         await t.rollback();
         console.error('Error al actualizar tamaño con insumos:', error);
