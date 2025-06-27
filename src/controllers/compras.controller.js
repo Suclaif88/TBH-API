@@ -13,9 +13,10 @@ const {
 const { sequelize } = require("../config/db");
 
 const procesarDetalle = async (detalle, Id_Compras, compra, t) => {
-  const { Id_Productos, Id_Insumos, Cantidad, Subtotal, tallas } = detalle;
+  const { Id_Productos, Id_Insumos, Cantidad, Precio_Unitario, tallas } = detalle;
 
   if (Id_Insumos) {
+    const { Subtotal } = detalle;
     if (!Cantidad || !Subtotal) throw new Error('Campos obligatorios faltantes para insumos.');
 
     const Precio_ml = parseFloat((Subtotal / Cantidad).toFixed(2));
@@ -39,7 +40,7 @@ const procesarDetalle = async (detalle, Id_Compras, compra, t) => {
   }
 
   if (Id_Productos) {
-    if (!Cantidad || !Subtotal) throw new Error('Campos obligatorios faltantes para productos.');
+    if (!Cantidad || !Precio_Unitario) throw new Error('Campos obligatorios faltantes para productos.');
 
     const producto = await Productos.findByPk(Id_Productos, {
       include: { model: Categoria_Productos, as: 'Id_Categoria_Producto_Categoria_Producto' },
@@ -48,8 +49,8 @@ const procesarDetalle = async (detalle, Id_Compras, compra, t) => {
 
     if (!producto) throw new Error('Producto no encontrado.');
 
-    const Precio_Unitario = parseFloat((Subtotal / Cantidad).toFixed(2));
     let CantidadFinal = Cantidad;
+    const Subtotal = parseFloat((Cantidad * Precio_Unitario).toFixed(2));
 
     if (producto.Id_Categoria_Producto_Categoria_Producto?.Es_Ropa) {
       if (!Array.isArray(tallas) || tallas.length === 0) {
@@ -94,10 +95,11 @@ const procesarDetalle = async (detalle, Id_Compras, compra, t) => {
     producto.Stock += CantidadFinal;
     await producto.save({ transaction: t });
 
-    compra.Total += parseFloat(Subtotal);
+    compra.Total += Subtotal;
     await compra.save({ transaction: t });
   }
 };
+
 
 // Crear una nueva compra
 exports.crearCompra = async (req, res) => {
@@ -125,6 +127,7 @@ exports.crearCompra = async (req, res) => {
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
+
 // Obtener todas las compras
 exports.obtenerCompras = async (req, res) => {
   try {

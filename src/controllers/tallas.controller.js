@@ -1,5 +1,5 @@
 const { Categoria_Productos, Tallas, Producto_Tallas } = require('../models');
-
+const { Op } = require('sequelize');
 
 // Obtener todas las Tallas 
 exports.obtenerTallas = async (req, res) => {
@@ -26,8 +26,6 @@ exports.obtenerTallas = async (req, res) => {
   }
 };
 
-
-
 // Obtener una Talla por ID
 exports.obtenerTallaPorId = async (req, res) => {
   try {
@@ -45,6 +43,22 @@ exports.obtenerTallaPorId = async (req, res) => {
 // Crear nueva Talla
 exports.crearTalla = async (req, res) => {
   try {
+    const { Nombre, Id_Categoria_Producto } = req.body;
+
+    const tallaExistente = await Tallas.findOne({
+      where: {
+        Nombre,
+        Id_Categoria_Producto
+      }
+    });
+
+    if (tallaExistente) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe una talla con ese nombre en esta categoría.'
+      });
+    }
+
     const nuevaTalla = await Tallas.create(req.body);
     res.json({ status: 'success', data: nuevaTalla });
   } catch (error) {
@@ -56,16 +70,47 @@ exports.crearTalla = async (req, res) => {
 exports.actualizarTalla = async (req, res) => {
   try {
     const id = req.params.id;
-    const [updated] = await Tallas.update(req.body, {
-      where: { Id_Tallas: id }
+    const { Nombre, Id_Categoria_Producto } = req.body;
+
+    const talla = await Tallas.findByPk(id);
+    if (!talla) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Talla no encontrada'
+      });
+    }
+
+    const tallaDuplicada = await Tallas.findOne({
+      where: {
+        Nombre,
+        Id_Categoria_Producto,
+        Id_Tallas: { [Op.ne]: id }
+      }
     });
 
-    if (updated) {
-      const tallaActualizada = await Tallas.findByPk(id);
-      res.json({ status: 'success', data: tallaActualizada });
-    } else {
-      res.status(404).json({ status: 'error', message: 'Talla no encontrada' });
+    if (tallaDuplicada) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe otra talla con ese nombre en esta categoría.'
+      });
     }
+
+    const datosSinCambios =
+      talla.Nombre === Nombre &&
+      talla.Id_Categoria_Producto === Id_Categoria_Producto &&
+      talla.Estado === req.body.Estado;
+
+    if (datosSinCambios) {
+      return res.json({
+        status: 'success',
+        message: 'No hubo cambios en los datos',
+        data: talla
+      });
+    }
+
+    await talla.update(req.body);
+    res.json({ status: 'success', data: talla });
+
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
