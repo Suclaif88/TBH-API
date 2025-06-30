@@ -75,6 +75,16 @@ exports.eliminarRoles = async (req, res) => {
     if (!rol) {
       return res.status(404).json({ status: 'error', message: 'Rol no encontrado' });
     }
+    
+    const usuariosConRol = await Usuarios.findOne({ where: { Rol_Id: id } });
+
+    if (usuariosConRol && rol.Estado === true) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No se puede eliminar el rol porque está asignado a uno o más usuarios.'
+      });
+    }
+
     await Roles.destroy({ where: { id: id } });
     res.json({ status: 'success', message: 'Rol eliminado' });
   } catch (err) {

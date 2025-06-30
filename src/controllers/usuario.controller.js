@@ -1,7 +1,9 @@
-const { Usuarios } = require('../models');
+const { Usuarios,Clientes,Empleados,Roles } = require('../models');
 const bcrypt = require('bcryptjs');
 
 exports.crearUsuario = async (req, res) => {
+  const t = await Usuarios.sequelize.transaction();
+
   try {
     const datosUsuario = { ...req.body };
 
@@ -9,9 +11,35 @@ exports.crearUsuario = async (req, res) => {
       datosUsuario.Password = await bcrypt.hash(datosUsuario.Password, 10);
     }
 
-    const nuevoUsuario = await Usuarios.create(datosUsuario);
+    const nuevoUsuario = await Usuarios.create(datosUsuario, { transaction: t });
+
+    const rol = await Roles.findOne({ where: { Id: datosUsuario.Rol_Id } });
+    if (!rol) {
+      throw new Error("Rol no válido");
+    }
+
+    const datosAdicionales = {
+      Documento: datosUsuario.Documento,
+      Tipo_Documento: datosUsuario.Tipo_Documento,
+      Nombre: datosUsuario.Nombre,
+      Celular: datosUsuario.Celular,
+      F_Nacimiento: datosUsuario.F_Nacimiento,
+      Direccion: datosUsuario.Direccion,
+      Sexo: datosUsuario.Sexo,
+      Correo: datosUsuario.Correo,
+    };
+
+    if (rol.Nombre === "Cliente") {
+      await Clientes.create(datosAdicionales, { transaction: t });
+    } else if (rol.Nombre === "Empleado") {
+      await Empleados.create(datosAdicionales, { transaction: t });
+    }
+
+    await t.commit();
     res.json({ status: 'success', data: nuevoUsuario });
+
   } catch (err) {
+    await t.rollback();
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
