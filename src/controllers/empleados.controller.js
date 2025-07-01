@@ -96,3 +96,23 @@ exports.cambiarEstadoEmpleado = async (req, res) => {
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
+
+exports.listarEmpleadoPorDocumento = async (req, res) => {
+    try {
+        const { documento } = req.params;
+        console.log(`Backend: Buscando Empleado por Documento: ${documento}`);
+        const empleado = await Empleados.findOne({
+            where: { Documento: documento }
+        });
+
+        if (!empleado) {
+            console.log(`Empleado con Documento ${documento} no encontrado.`);
+            return res.status(404).json({ status: 'error', message: 'Empleado no encontrado' });
+        }
+        console.log(`Backend: Empleado encontrado por Documento: ${documento}`);
+        res.json({ status: 'success', data: cliente });
+    } catch (err) {
+        console.error('Backend: Error en listarEmpleadoPorDocumento:', err);
+        res.status(500).json({ status: 'error', message: err.message || 'Error al buscar Empleado por documento.' });
+    }
+};
