@@ -7,6 +7,7 @@ const {
     cambiarEstadoServicio,
     eliminarServicio    
 } = require ('../controllers/servicios.controller');
+const upload = require("../middleware/upload");
 const verificarToken =require('../middleware/authMiddleware');
 const autorizar = require('../middleware/checkPermission');
 
@@ -16,7 +17,7 @@ router.use(verificarToken);
 router.use(autorizar('Servicios'));
 
 
-router.post('/', crearServicio)
+router.post('/', upload.array('imagenes'), crearServicio);
 router.get('/', listarServicio)
 router.get('/:id', obtenerServicioById)
 router.put('/:id', actualizarServicio)

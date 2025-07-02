@@ -217,6 +217,19 @@ function nini(sequelize) {
   Servicios.hasMany(Empleado_Servicio, { as: "Empleado_Servicios", foreignKey: "Id_Servicios"});
   Servicio_Imagen.belongsTo(Servicios, { as: "Id_Servicios_Servicio", foreignKey: "Id_Servicios"});
   Servicios.hasMany(Servicio_Imagen, { as: "Servicio_Imagens", foreignKey: "Id_Servicios"});
+  Servicios.belongsToMany(Imagenes, {
+    through: Servicio_Imagen,
+    foreignKey: "Id_Servicios",
+    otherKey: "Id_Imagenes",
+    as: "Imagenes"
+  });
+
+  Imagenes.belongsToMany(Servicios, {
+    through: Servicio_Imagen,
+    foreignKey: "Id_Imagenes",
+    otherKey: "Id_Servicios",
+    as: "Servicios"
+  });
   Detalle_Compra_Tallas.belongsTo(Tallas, { as: "Id_Tallas_Talla", foreignKey: "Id_Tallas"});
   Tallas.hasMany(Detalle_Compra_Tallas, { as: "Detalle_Compra_Tallas", foreignKey: "Id_Tallas"});
   Producto_Tallas.belongsTo(Tallas, { as: "Id_Tallas_Talla", foreignKey: "Id_Tallas"});

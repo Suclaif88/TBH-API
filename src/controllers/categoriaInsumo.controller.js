@@ -1,10 +1,62 @@
 const { Categoria_Insumos, Insumos } = require('../models');
+const { Op } = require("sequelize");
 
 exports.crearCategoria = async (req, res) => {
   try {
-    const { Nombre } = req.body;
+    let { Nombre, Descripcion } = req.body;
 
-    const categoriaExistente = await Categoria_Insumos.findOne({ where: { Nombre } });
+    // --- Validaciones básicas ---
+    if (!Nombre || !Nombre.trim()) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'El nombre es obligatorio.',
+      });
+    }
+
+    if (!Descripcion || !Descripcion.trim()) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'La descripción es obligatoria.',
+      });
+    }
+
+    // Eliminar espacios al inicio y final
+    Nombre = Nombre.trim();
+    Descripcion = Descripcion.trim();
+
+    // --- Validaciones estrictas ---
+    if (Nombre.length < 3) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'El nombre debe tener al menos 3 caracteres.',
+      });
+    }
+
+    if (Nombre.includes(" ")) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'El nombre no debe contener espacios.',
+      });
+    }
+
+    if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ0-9]+$/.test(Nombre)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'El nombre solo debe contener letras y números, sin espacios.',
+      });
+    }
+
+    if (Descripcion.length < 5 || Descripcion.length > 100) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'La descripción debe tener entre 5 y 100 caracteres.',
+      });
+    }
+
+    // --- Duplicado ---
+    const categoriaExistente = await Categoria_Insumos.findOne({
+      where: { Nombre }
+    });
 
     if (categoriaExistente) {
       return res.status(400).json({
@@ -13,14 +65,21 @@ exports.crearCategoria = async (req, res) => {
       });
     }
 
+    // --- Crear categoría ---
     const nuevaCategoria = await Categoria_Insumos.create({
-      ...req.body,
+      Nombre,
+      Descripcion,
       Estado: 1,
     });
 
     res.json({ status: 'success', data: nuevaCategoria });
+
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('Error al crear categoría:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error interno del servidor.',
+    });
   }
 };
 
@@ -76,16 +135,100 @@ exports.obtenerCategoriaPorId = async (req, res) => {
 exports.actualizarCategoria = async (req, res) => {
   try {
     const { id } = req.params;
-    const categoria = await Categoria_Insumos.findOne({ where: { Id_Categoria_Insumos: id } });
+    let { Nombre, Descripcion } = req.body;
+
+    const categoria = await Categoria_Insumos.findOne({
+      where: { Id_Categoria_Insumos: id }
+    });
+
     if (!categoria) {
-      return res.status(404).json({ status: 'error', message: 'Categoría de insumo no encontrada' });
+      return res.status(404).json({
+        status: 'error',
+        message: 'Categoría de insumo no encontrada',
+      });
     }
-    await Categoria_Insumos.update(req.body, { where: { Id_Categoria_Insumos: id } });
-    res.json({ status: 'success', message: 'Categoría de insumo actualizada' });
+
+    // --- Validaciones ---
+    if (!Nombre || !Nombre.trim()) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'El nombre es obligatorio.',
+      });
+    }
+
+    if (!Descripcion || !Descripcion.trim()) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'La descripción es obligatoria.',
+      });
+    }
+
+    Nombre = Nombre.trim();
+    Descripcion = Descripcion.trim();
+
+    if (Nombre.length < 3) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'El nombre debe tener al menos 3 caracteres.',
+      });
+    }
+
+    if (Nombre.includes(" ")) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'El nombre no debe contener espacios.',
+      });
+    }
+
+    if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ0-9]+$/.test(Nombre)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'El nombre solo debe contener letras y números sin espacios.',
+      });
+    }
+
+    if (Descripcion.length < 5 || Descripcion.length > 100) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'La descripción debe tener entre 5 y 100 caracteres.',
+      });
+    }
+
+    // --- Verificar duplicado en otras categorías ---
+    const duplicada = await Categoria_Insumos.findOne({
+      where: {
+        Nombre,
+        Id_Categoria_Insumos: { [Op.ne]: id }
+      }
+    });
+
+    if (duplicada) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ya existe otra categoría con ese nombre.',
+      });
+    }
+
+    // --- Actualizar ---
+    await Categoria_Insumos.update(
+      { Nombre, Descripcion },
+      { where: { Id_Categoria_Insumos: id } }
+    );
+
+    res.json({
+      status: 'success',
+      message: 'Categoría de insumo actualizada exitosamente.',
+    });
+
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('Error al actualizar categoría:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error interno del servidor.',
+    });
   }
 };
+
 
 exports.cambiarEstado = async (req, res) => {
   try {

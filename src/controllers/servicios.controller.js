@@ -1,22 +1,61 @@
-const { Servicios } = require('../models');
+const { Servicios, Servicio_Imagen, Imagenes   } = require('../models');
+const { subirImagenesDesdeArchivos, eliminarImagenesPorIdsArray } = require('../controllers/imagenes.controller');
+const { sequelize } = require("../config/db");
+
 
 exports.crearServicio = async (req, res) => {
-    try {
-        const nuevoServicio = await Servicios.create(req.body);
-        res.json({ status: 'success', data: nuevoServicio});
-    } catch (err) {
-        res.status(500).json({ status: 'error', message: err.message});
-    }
+  const transaction = await sequelize.transaction();
+
+  try {
+    const archivos = req.files || [];
+
+    // 1. Crear el servicio
+    const nuevoServicio = await Servicios.create(req.body, { transaction });
+    const Id_Servicios = nuevoServicio.Id_Servicios;
+
+    // 2. Subir imágenes a Cloudinary y guardarlas en tabla Imagenes
+    const imagenesSubidas = await subirImagenesDesdeArchivos(archivos, transaction);
+
+    // 3. Relacionar servicio con imágenes
+    const relaciones = imagenesSubidas.map((img) => ({
+      Id_Servicios,
+      Id_Imagenes: img.Id_Imagenes,
+    }));
+
+    await Servicio_Imagen.bulkCreate(relaciones, { transaction });
+
+    await transaction.commit();
+
+    res.json({
+      status: "success",
+      data: nuevoServicio,
+      imagenes: imagenesSubidas,
+    });
+  } catch (err) {
+    await transaction.rollback();
+    console.error("Error al crear servicio:", err);
+    res.status(500).json({ status: "error", message: err.message });
+  }
 };
 
 exports.listarServicio = async (req, res) => {
-    try {
-        const servicio = await Servicios.findAll();
-        res.json({ status: 'succes', data: servicio });
-    } catch (err) {
-        res.status(500).json({ status: 'error', message: err.message});
-    }
+  try {
+    const servicios = await Servicios.findAll({
+      include: [
+        {
+          model: Imagenes,
+          as: "Imagenes", // 👈 Asegúrate de que coincide con el alias del belongsToMany
+          through: { attributes: [] } // omitir campos de la tabla intermedia
+        }
+      ]
+    });
+    res.json({ status: "success", data: servicios });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: err.message });
+  }
 };
+
+
 
 exports.obtenerServicioById = async (req, res) => {
   try {
