@@ -1,6 +1,11 @@
 const { Categoria_Insumos, Insumos } = require('../models');
 const { Op } = require("sequelize");
 
+/*
+* Crear una nueva categoría de insumo
+* Verifica que el nombre y la descripción cumplan con las validaciones
+* Verifica que no exista otra categoría con el mismo nombre
+*/
 exports.crearCategoria = async (req, res) => {
   try {
     let { Nombre, Descripcion } = req.body;
@@ -72,16 +77,30 @@ exports.crearCategoria = async (req, res) => {
       Estado: 1,
     });
 
-    res.json({ status: 'success', data: nuevaCategoria });
+    res.status(201).json({
+      status: 'success',
+      message: 'Categoría de insumo creada exitosamente.',
+      data: nuevaCategoria,
+    });
+
 
   } catch (err) {
     console.error('Error al crear categoría:', err);
     res.status(500).json({
       status: 'error',
-      message: 'Error interno del servidor.',
+      message: 'Error al crear la categoría de insumo',
     });
   }
 };
+
+/*
+*--------------------------------------------------------------------------
+*/
+
+/*
+* Listar todas las categorías de insumos
+* Incluye los insumos asociados a cada categoría
+*/
 
 
 exports.listarCategorias = async (req, res) => {
@@ -99,6 +118,15 @@ exports.listarCategorias = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+/*
+*--------------------------------------------------------------------------
+*/
+
+/*
+* Obtener una categoría de insumo por ID
+* Incluye los insumos asociados a esa categoría
+*/
 
 exports.obtenerCategoriaPorId = async (req, res) => {
   try {
@@ -131,6 +159,16 @@ exports.obtenerCategoriaPorId = async (req, res) => {
     });
   }
 };
+
+/*
+*--------------------------------------------------------------------------
+*/
+
+/*
+* Actualizar una categoría de insumo
+* Verifica que el nombre y la descripción cumplan con las validaciones
+* Verifica que no exista otra categoría con el mismo nombre
+*/
 
 exports.actualizarCategoria = async (req, res) => {
   try {
@@ -229,6 +267,15 @@ exports.actualizarCategoria = async (req, res) => {
   }
 };
 
+/*
+*--------------------------------------------------------------------------
+*/
+
+/*
+* Cambiar el estado de una categoría de insumo
+* Si la categoría está activa, se desactiva y viceversa
+*/
+
 
 exports.cambiarEstado = async (req, res) => {
   try {
@@ -247,6 +294,15 @@ exports.cambiarEstado = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+/*
+*--------------------------------------------------------------------------
+*/
+
+/*
+* Eliminar una categoría de insumo
+* Verifica si la categoría tiene insumos asociados antes de eliminarla
+*/
 
 exports.eliminarCategoria = async (req, res) => {
   try {
@@ -271,3 +327,7 @@ exports.eliminarCategoria = async (req, res) => {
     res.status(500).json({ status: 'error', message: 'Error interno en el servidor' });
   }
 };
+
+/*
+*--------------------------------------------------------------------------
+*/
