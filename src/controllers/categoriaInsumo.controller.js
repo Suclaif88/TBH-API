@@ -1,11 +1,82 @@
 const { Categoria_Insumos, Insumos } = require('../models');
 const { Op } = require("sequelize");
 
+/**
+ * --------------------------------------------------------------------------------------
+ * Listar categorías
+ * Incluye los insumos asociados a cada categoría
+ * --------------------------------------------------------------------------------------
+ */
+
+
+exports.listarCategorias = async (req, res) => {
+  try {
+    const categorias = await Categoria_Insumos.findAll({
+      include: [
+        {
+          model: Insumos,
+          as: 'Insumos',
+        }
+      ],
+    });
+    res.json({ status: 'success', data: categorias });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
 /*
-* Crear una nueva categoría de insumo
-* Verifica que el nombre y la descripción cumplan con las validaciones
-* Verifica que no exista otra categoría con el mismo nombre
+*--------------------------------------------------------------------------
 */
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Obtener categoría por ID
+ * Incluye los insumos asociados a la categoría
+ * --------------------------------------------------------------------------------------
+ */
+
+exports.obtenerCategoriaPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const categoria = await Categoria_Insumos.findByPk(id, {
+      include: [
+        {
+          model: Insumos,
+          as: 'Insumos',
+        },
+      ],
+    });
+
+    if (!categoria) {
+      return res.status(404).json({
+        status: 'error',
+        message: `No se encontró categoría con id ${id}`
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: categoria,
+    });
+  } catch (err) {
+    console.error(`Error al obtener categoría con id ${req.params.id}:`, err);
+    res.status(500).json({
+      status: 'error',
+      message: err.message
+    });
+  }
+};
+
+/*
+*--------------------------------------------------------------------------
+*/
+
+ /**
+  * --------------------------------------------------------------------------------------
+ * Crear categoría
+ * --------------------------------------------------------------------------------------
+ */
 exports.crearCategoria = async (req, res) => {
   try {
     let { Nombre, Descripcion } = req.body;
@@ -97,78 +168,11 @@ exports.crearCategoria = async (req, res) => {
 *--------------------------------------------------------------------------
 */
 
-/*
-* Listar todas las categorías de insumos
-* Incluye los insumos asociados a cada categoría
-*/
-
-
-exports.listarCategorias = async (req, res) => {
-  try {
-    const categorias = await Categoria_Insumos.findAll({
-      include: [
-        {
-          model: Insumos,
-          as: 'Insumos',
-        }
-      ],
-    });
-    res.json({ status: 'success', data: categorias });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-};
-
-/*
-*--------------------------------------------------------------------------
-*/
-
-/*
-* Obtener una categoría de insumo por ID
-* Incluye los insumos asociados a esa categoría
-*/
-
-exports.obtenerCategoriaPorId = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const categoria = await Categoria_Insumos.findByPk(id, {
-      include: [
-        {
-          model: Insumos,
-          as: 'Insumos',
-        },
-      ],
-    });
-
-    if (!categoria) {
-      return res.status(404).json({
-        status: 'error',
-        message: `No se encontró categoría con id ${id}`,
-      });
-    }
-
-    res.status(200).json({
-      status: 'success',
-      data: categoria,
-    });
-  } catch (err) {
-    console.error(`Error al obtener categoría con id ${req.params.id}:`, err);
-    res.status(500).json({
-      status: 'error',
-      message: 'Error del servidor al obtener la categoría.',
-    });
-  }
-};
-
-/*
-*--------------------------------------------------------------------------
-*/
-
-/*
-* Actualizar una categoría de insumo
-* Verifica que el nombre y la descripción cumplan con las validaciones
-* Verifica que no exista otra categoría con el mismo nombre
-*/
+/**
+ * --------------------------------------------------------------------------------------
+ * Actualizar categoría
+ * --------------------------------------------------------------------------------------
+ */
 
 exports.actualizarCategoria = async (req, res) => {
   try {
@@ -271,10 +275,11 @@ exports.actualizarCategoria = async (req, res) => {
 *--------------------------------------------------------------------------
 */
 
-/*
-* Cambiar el estado de una categoría de insumo
-* Si la categoría está activa, se desactiva y viceversa
-*/
+/**
+ * --------------------------------------------------------------------------------------
+ * Cambiar estado de categoría
+ * --------------------------------------------------------------------------------------
+ */
 
 
 exports.cambiarEstado = async (req, res) => {
@@ -299,10 +304,11 @@ exports.cambiarEstado = async (req, res) => {
 *--------------------------------------------------------------------------
 */
 
-/*
-* Eliminar una categoría de insumo
-* Verifica si la categoría tiene insumos asociados antes de eliminarla
-*/
+/**
+ * --------------------------------------------------------------------------------------
+ * Eliminar categoría
+ * --------------------------------------------------------------------------------------
+ */
 
 exports.eliminarCategoria = async (req, res) => {
   try {

@@ -4,13 +4,12 @@ const {
   listarInsumos,
   obtenerInsumoPorId,
   obtenerInsumosActivos,
-  obtenerInsumosBase,
-  obtenerInsumosFrascos,
-  obtenerInsumosFragancia,
+  obtenerInsumosPorCategoria,
   actualizarInsumo,
   eliminarInsumo,
   cambiarEstado
 } = require('../controllers/insumo.controller');
+
 const verificarToken = require('../middleware/authMiddleware');
 const autorizar = require('../middleware/checkPermission');
 
@@ -21,9 +20,7 @@ router.use(autorizar('Insumos'));
 
 router.get('/', listarInsumos);
 router.get('/activos', obtenerInsumosActivos);
-router.get('/base', obtenerInsumosBase);
-router.get('/frascos', obtenerInsumosFrascos);
-router.get('/fragancias', obtenerInsumosFragancia);
+router.get('/categoria/:nombre', obtenerInsumosPorCategoria);
 router.get('/:id', obtenerInsumoPorId);
 router.post('/', crearInsumo);
 router.put('/:id', actualizarInsumo);
