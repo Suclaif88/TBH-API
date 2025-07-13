@@ -241,6 +241,11 @@ function nini(sequelize) {
   Detalle_Venta.belongsTo(Ventas, { as: "Id_Ventas_Venta", foreignKey: "Id_Ventas"});
   Ventas.hasMany(Detalle_Venta, { as: "Detalle_Venta", foreignKey: "Id_Ventas"});
 
+  
+  Detalle_Venta.belongsTo(Servicios, { as: "Servicio", foreignKey: "Id_Servicios" });
+  Servicios.hasMany(Detalle_Venta, { as: "Detalle_Venta", foreignKey: "Id_Servicios" });
+
+
   return {
     Agendamiento_Servicios,
     Agendamientos,

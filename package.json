@@ -36,6 +36,7 @@
     "ora": "^5.4.1",
     "sequelize": "^6.37.7",
     "serve-favicon": "^2.5.0",
+    "umzug": "^3.8.2",
     "winston": "^3.17.0"
   },
   "devDependencies": {
