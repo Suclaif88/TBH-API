@@ -1,6 +1,82 @@
 const { Categoria_Insumos, Insumos } = require('../models');
 const { Op } = require("sequelize");
 
+/**
+ * --------------------------------------------------------------------------------------
+ * Listar categorías
+ * Incluye los insumos asociados a cada categoría
+ * --------------------------------------------------------------------------------------
+ */
+
+
+exports.listarCategorias = async (req, res) => {
+  try {
+    const categorias = await Categoria_Insumos.findAll({
+      include: [
+        {
+          model: Insumos,
+          as: 'Insumos',
+        }
+      ],
+    });
+    res.json({ status: 'success', data: categorias });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+/*
+*--------------------------------------------------------------------------
+*/
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Obtener categoría por ID
+ * Incluye los insumos asociados a la categoría
+ * --------------------------------------------------------------------------------------
+ */
+
+exports.obtenerCategoriaPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const categoria = await Categoria_Insumos.findByPk(id, {
+      include: [
+        {
+          model: Insumos,
+          as: 'Insumos',
+        },
+      ],
+    });
+
+    if (!categoria) {
+      return res.status(404).json({
+        status: 'error',
+        message: `No se encontró categoría con id ${id}`
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: categoria,
+    });
+  } catch (err) {
+    console.error(`Error al obtener categoría con id ${req.params.id}:`, err);
+    res.status(500).json({
+      status: 'error',
+      message: err.message
+    });
+  }
+};
+
+/*
+*--------------------------------------------------------------------------
+*/
+
+ /**
+  * --------------------------------------------------------------------------------------
+ * Crear categoría
+ * --------------------------------------------------------------------------------------
+ */
 exports.crearCategoria = async (req, res) => {
   try {
     let { Nombre, Descripcion } = req.body;
@@ -72,65 +148,31 @@ exports.crearCategoria = async (req, res) => {
       Estado: 1,
     });
 
-    res.json({ status: 'success', data: nuevaCategoria });
+    res.status(201).json({
+      status: 'success',
+      message: 'Categoría de insumo creada exitosamente.',
+      data: nuevaCategoria,
+    });
+
 
   } catch (err) {
     console.error('Error al crear categoría:', err);
     res.status(500).json({
       status: 'error',
-      message: 'Error interno del servidor.',
+      message: 'Error al crear la categoría de insumo',
     });
   }
 };
 
+/*
+*--------------------------------------------------------------------------
+*/
 
-exports.listarCategorias = async (req, res) => {
-  try {
-    const categorias = await Categoria_Insumos.findAll({
-      include: [
-        {
-          model: Insumos,
-          as: 'Insumos',
-        }
-      ],
-    });
-    res.json({ status: 'success', data: categorias });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-};
-
-exports.obtenerCategoriaPorId = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const categoria = await Categoria_Insumos.findByPk(id, {
-      include: [
-        {
-          model: Insumos,
-          as: 'Insumos',
-        },
-      ],
-    });
-
-    if (!categoria) {
-      return res.status(404).json({
-        status: 'error',
-        message: `No se encontró categoría con id ${id}`,
-      });
-    }
-
-    res.status(200).json({
-      status: 'success',
-      data: categoria,
-    });
-  } catch (err) {
-    console.error(`Error al obtener categoría con id ${req.params.id}:`, err);
-    res.status(500).json({
-      status: 'error',
-      message: 'Error del servidor al obtener la categoría.',
-    });
-  }
-};
+/**
+ * --------------------------------------------------------------------------------------
+ * Actualizar categoría
+ * --------------------------------------------------------------------------------------
+ */
 
 exports.actualizarCategoria = async (req, res) => {
   try {
@@ -229,6 +271,16 @@ exports.actualizarCategoria = async (req, res) => {
   }
 };
 
+/*
+*--------------------------------------------------------------------------
+*/
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Cambiar estado de categoría
+ * --------------------------------------------------------------------------------------
+ */
+
 
 exports.cambiarEstado = async (req, res) => {
   try {
@@ -247,6 +299,16 @@ exports.cambiarEstado = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+/*
+*--------------------------------------------------------------------------
+*/
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Eliminar categoría
+ * --------------------------------------------------------------------------------------
+ */
 
 exports.eliminarCategoria = async (req, res) => {
   try {
@@ -271,3 +333,7 @@ exports.eliminarCategoria = async (req, res) => {
     res.status(500).json({ status: 'error', message: 'Error interno en el servidor' });
   }
 };
+
+/*
+*--------------------------------------------------------------------------
+*/

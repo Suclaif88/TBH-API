@@ -8,6 +8,7 @@ const favicon = require("serve-favicon");
 const path = require("path");
 const ora = require("ora");
 const cookieParser = require('cookie-parser');
+const { migrator } = require('./src/config/migrator');
 
 const app = express();
 const AUTOR = process.env.AUTOR || "SRD";
@@ -21,6 +22,7 @@ const spinner = ora("Iniciando TBH API...").start();
 const iniciarServidor = async () => {
   const conexionExitosa = await conectarBD();
   if (conexionExitosa) {
+    await migrator.up();
     setTimeout(() => {
       spinner.succeed("TBH-API Iniciada correctamente");
       const spinnerUrl = ora("Preparando todo...").start();

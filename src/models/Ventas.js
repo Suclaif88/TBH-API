@@ -40,6 +40,14 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DECIMAL(10,2),
       allowNull: true
     },
+    M_Pago: {
+      type: DataTypes.STRING(50),
+      allowNull: false
+    },
+    Referencia: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
     Estado: {
       type: DataTypes.TINYINT,
       allowNull: true,

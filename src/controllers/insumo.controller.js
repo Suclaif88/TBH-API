@@ -1,6 +1,12 @@
 const { Insumos, Categoria_Insumos, Detalle_Compra_Insumos } = require("../models");
 const { Op } = require('sequelize');
 
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Listar insumos
+ * --------------------------------------------------------------------------------------
+ */
 exports.listarInsumos = async (req, res) => {
   try {
     const insumos = await Insumos.findAll({
@@ -31,6 +37,51 @@ exports.listarInsumos = async (req, res) => {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+/**
+ *--------------------------------------------------------------------------------------
+ */
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Obtener insumo por ID
+ * --------------------------------------------------------------------------------------
+ */
+
+exports.obtenerInsumoPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const insumo = await Insumos.findByPk(id);
+
+    if (!insumo) {
+      return res.status(404).json({ 
+        status: 'error', 
+        message: `No se encontró insumo con id ${id}`
+      });
+    }
+
+    res.status(200).json({
+       status: 'success',
+       data: insumo
+    });
+  } catch (err) {
+    console.error(`Error al obtener insumo con id ${req.params.id}:`, err);
+    res.status(500).json({
+      status: 'error',
+      message: err.message
+    });
+  }
+};
+
+/**
+ *--------------------------------------------------------------------------------------
+ */
+
+ /**
+ * --------------------------------------------------------------------------------------
+ * Crear insumo
+ * --------------------------------------------------------------------------------------
+ */
 
 exports.crearInsumo = async (req, res) => {
   try {
@@ -111,6 +162,16 @@ exports.crearInsumo = async (req, res) => {
   }
 };
 
+/**
+ *--------------------------------------------------------------------------------------
+ */
+
+
+ /**
+ * --------------------------------------------------------------------------------------
+ * Actualizar insumo
+ * --------------------------------------------------------------------------------------
+ */
 exports.actualizarInsumo = async (req, res) => {
   try {
     const { id } = req.params;
@@ -151,7 +212,7 @@ exports.actualizarInsumo = async (req, res) => {
     const duplicado = await Insumos.findOne({
       where: {
         Nombre: Nombre.trim(),
-        Id_Insumos: { [Op.ne]: id }, // Sequelize operator para "distinto de"
+        Id_Insumos: { [Op.ne]: id },
       },
     });
 
@@ -179,20 +240,68 @@ exports.actualizarInsumo = async (req, res) => {
   }
 };
 
-exports.obtenerInsumoPorId = async (req, res) => {
+/**
+ *--------------------------------------------------------------------------------------
+ */
+
+ /**
+ * --------------------------------------------------------------------------------------
+ * Cambiar estado de insumo
+ * --------------------------------------------------------------------------------------
+ */
+
+exports.cambiarEstado = async (req, res) => {
   try {
     const { id } = req.params;
-    const insumo = await Insumos.findByPk(id);
 
+    const insumo = await Insumos.findByPk(id);
     if (!insumo) {
       return res.status(404).json({ status: 'error', message: 'Insumo no encontrado' });
     }
+
+    insumo.Estado = !insumo.Estado;
+    await insumo.save();
 
     res.json({ status: 'success', data: insumo });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+/**
+ *--------------------------------------------------------------------------------------
+ */
+
+ /**
+ * --------------------------------------------------------------------------------------
+ * Eliminar insumo
+ * --------------------------------------------------------------------------------------
+ */
+
+
+exports.eliminarInsumo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const insumo = await Insumos.findOne({ where: { Id_Insumos: id } });
+    if (!insumo) {
+      return res.status(404).json({ status: 'error', message: 'Insumo no encontrado' });
+    }
+    await Insumos.destroy({ where: { Id_Insumos: id } });
+    res.json({ status: 'success', message: 'Insumo eliminado' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+/**
+ *--------------------------------------------------------------------------------------
+ */
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Obtener insumos activos
+ * --------------------------------------------------------------------------------------
+ */
 
 exports.obtenerInsumosActivos = async (req, res) => {
   try {
@@ -222,9 +331,22 @@ exports.obtenerInsumosActivos = async (req, res) => {
   }
 };
 
-exports.obtenerInsumosBase = async (req, res) => {
+/**
+ *--------------------------------------------------------------------------------------
+ */
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Obtener insumos por nombre de categoría dinámica
+ * Ejemplo: /insumos/categoria/Base o /insumos/categoria/Frasco
+ * nando sos un fracaso y me toco refactorizar tu código
+ * --------------------------------------------------------------------------------------
+ */
+exports.obtenerInsumosPorCategoria = async (req, res) => {
   try {
-    const insumosBase = await Insumos.findAll({
+    const { nombre } = req.params;
+
+    const insumos = await Insumos.findAll({
       where: {
         Estado: true
       },
@@ -233,98 +355,19 @@ exports.obtenerInsumosBase = async (req, res) => {
           model: Categoria_Insumos,
           as: "Id_Categoria_Insumos_Categoria_Insumo",
           where: {
-            Nombre: "Base"
-          }
+            Nombre: nombre
+          },
+          attributes: ['Nombre']
         }
       ]
     });
 
-    res.json({ status: 'success', data: insumosBase });
+    res.json({ status: 'success', data: insumos });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
-exports.obtenerInsumosFrascos = async (req, res) => {
-  try {
-    const insumosFrasco = await Insumos.findAll({
-      where: {
-        Estado: true
-      },
-      include: [
-        {
-          model: Categoria_Insumos,
-          as: "Id_Categoria_Insumos_Categoria_Insumo",
-          where: {
-            Nombre: "Frasco"
-          }
-        }
-      ]
-    });
-
-    res.json({ status: 'success', data: insumosFrasco });
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
-  }
-};
-
-exports.obtenerInsumosFragancia = async (req, res) => {
-  try {
-    const insumosFragancia = await Insumos.findAll({
-      where: {
-        Estado: true
-      },
-      include: [
-        {
-          model: Categoria_Insumos,
-          as: "Id_Categoria_Insumos_Categoria_Insumo",
-          where: {
-            Nombre: "Fragancia"
-          }
-        }
-      ]
-    });
-
-    res.json({ status: 'success', data: insumosFragancia });
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
-  }
-};
-
-
-
-exports.cambiarEstado = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const insumo = await Insumos.findByPk(id);
-    if (!insumo) {
-      return res.status(404).json({ status: 'error', message: 'Insumo no encontrado' });
-    }
-
-    insumo.Estado = !insumo.Estado;
-    await insumo.save();
-
-    res.json({ status: 'success', data: insumo });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-};
-
-//--------------------------------------------------------------------------
-
-
-
-exports.eliminarInsumo = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const insumo = await Insumos.findOne({ where: { Id_Insumos: id } });
-    if (!insumo) {
-      return res.status(404).json({ status: 'error', message: 'Insumo no encontrado' });
-    }
-    await Insumos.destroy({ where: { Id_Insumos: id } });
-    res.json({ status: 'success', message: 'Insumo eliminado' });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-};
+/**
+ *--------------------------------------------------------------------------------------
+ */
