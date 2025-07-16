@@ -1,10 +1,12 @@
-const { 
+const {
   Ventas,
   Detalle_Venta,
-  Productos, 
+  Productos,
   Producto_Tallas,
   Producto_Tamano_Insumos,
-  Agendamientos
+  Agendamientos,
+  Empleados,
+  Servicios
 } = require('../models');
 
 const { sequelize } = require("../config/db");
@@ -25,22 +27,28 @@ exports.listarVentas = async (req, res) => {
           include: [
             { model: Productos, as: 'Id_Productos_Producto' },
             { model: Producto_Tallas, as: 'Id_Producto_Tallas_Producto_Talla' },
-            { model: Producto_Tamano_Insumos, as: 'Id_Producto_Tamano_Insumos_Producto_Tamano_Insumo' }
+            { model: Producto_Tamano_Insumos, as: 'Id_Producto_Tamano_Insumos_Producto_Tamano_Insumo' },
+            { model: Servicios, as: 'Servicio' }
           ]
         },
         {
           model: Agendamientos,
           as: 'Id_Agendamientos_Agendamiento',
           required: false
+        },
+        {
+          model: Empleados,
+          as: 'Id_Empleados_Empleado',
+          attributes: ['Id_Empleados', 'Nombre']
         }
       ]
     });
 
     const ventasConFlag = ventas.map(v => {
       const venta = v.toJSON();
-
       const detalle = venta.Detalle_Venta || [];
       const agendamiento = venta.Id_Agendamientos_Agendamiento || null;
+      const empleado = venta.Id_Empleados_Empleado || {};
 
       const subtotalDetalle = detalle.reduce((sum, item) => sum + Number(item.Subtotal || 0), 0);
       const subtotalAgendamiento = agendamiento ? Number(agendamiento.Subtotal || 0) : 0;
@@ -52,6 +60,7 @@ exports.listarVentas = async (req, res) => {
         Id_Agendamientos: venta.Id_Agendamientos,
         Id_Cliente: venta.Id_Cliente,
         Id_Empleados: venta.Id_Empleados,
+        Nombre_Empleado: empleado?.Nombre || 'Desconocido',
         Fecha: venta.Fecha,
         Total: venta.Total,
         Estado: venta.Estado,
@@ -105,19 +114,23 @@ exports.obtenerVentaPorId = async (req, res) => {
           model: Agendamientos,
           as: 'Id_Agendamientos_Agendamiento',
           required: false
+        },
+        {
+          model: Empleados,
+          as: 'Id_Empleados_Empleado',
+          attributes: ['Nombre']
         }
       ]
     });
-
 
     if (!venta) {
       return res.status(404).json({ status: 'error', message: 'Venta no encontrada' });
     }
 
     const ventaJson = venta.toJSON();
-
     const detalle = ventaJson.Detalle_Venta || [];
     const agendamiento = ventaJson.Id_Agendamientos_Agendamiento || null;
+    const empleado = ventaJson.Id_Empleados_Empleado || {};
 
     const subtotalDetalle = detalle.reduce((sum, item) => sum + Number(item.Subtotal || 0), 0);
     const subtotalAgendamiento = agendamiento ? Number(agendamiento.Subtotal || 0) : 0;
@@ -131,6 +144,7 @@ exports.obtenerVentaPorId = async (req, res) => {
         Id_Agendamientos: ventaJson.Id_Agendamientos,
         Id_Cliente: ventaJson.Id_Cliente,
         Id_Empleados: ventaJson.Id_Empleados,
+        Nombre_Empleado: empleado?.Nombre || 'Desconocido',
         Fecha: ventaJson.Fecha,
         Total: ventaJson.Total,
         M_Pago: ventaJson.M_Pago,
@@ -171,7 +185,7 @@ exports.crearVenta = async (req, res) => {
       Detalle_Venta: Detalles = []
     } = req.body;
 
-    if (!Id_Cliente || !Id_Empleados || !Fecha || !M_Pago || !Referencia || Detalles.length === 0) {
+    if (!Id_Cliente || !Id_Empleados || !Fecha || !M_Pago || Detalles.length === 0) {
       return res.status(400).json({ status: 'error', message: 'Faltan datos requeridos' });
     }
 
@@ -197,13 +211,14 @@ exports.crearVenta = async (req, res) => {
       Total: total,
       Estado: 1,
       M_Pago,
-      Referencia
+      Referencia: Referencia || null
     }, { transaction: t });
 
     for (const item of Detalles) {
       await Detalle_Venta.create({
         Id_Ventas: venta.Id_Ventas,
         Id_Productos: item.Id_Productos || null,
+        Id_Servicios: item.Id_Servicio || null,
         Id_Producto_Tallas: item.Id_Producto_Tallas || null,
         Id_Producto_Tamano_Insumos: item.Id_Producto_Tamano_Insumos || null,
         Cantidad: item.Cantidad,

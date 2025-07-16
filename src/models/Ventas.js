@@ -46,7 +46,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     Referencia: {
       type: DataTypes.STRING(100),
-      allowNull: false
+      allowNull: true
     },
     Estado: {
       type: DataTypes.TINYINT,
