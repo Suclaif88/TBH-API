@@ -241,11 +241,6 @@ function nini(sequelize) {
   Detalle_Venta.belongsTo(Ventas, { as: "Id_Ventas_Venta", foreignKey: "Id_Ventas"});
   Ventas.hasMany(Detalle_Venta, { as: "Detalle_Venta", foreignKey: "Id_Ventas"});
 
-  
-  Detalle_Venta.belongsTo(Servicios, { as: "Servicio", foreignKey: "Id_Servicios" });
-  Servicios.hasMany(Detalle_Venta, { as: "Detalle_Venta", foreignKey: "Id_Servicios" });
-
-
   return {
     Agendamiento_Servicios,
     Agendamientos,
@@ -284,4 +279,4 @@ function nini(sequelize) {
 }
 const models = initModels(sequelize);
 module.exports = models;
-//Si llegaste aqui es porque tienes muy mala suerte y algun modelo no se cargo correctamente que mal....
+//Si llegaste aqui es porque tienes muy mala suerte y algun modelo o relacion no se cargo correctamente que mal....
