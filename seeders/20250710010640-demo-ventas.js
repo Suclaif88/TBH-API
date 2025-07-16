@@ -12,8 +12,7 @@ module.exports = {
       {
         Id_Agendamientos: null, 
         Id_Cliente: 1,
-        Id_Empleados: 1,
-        Id_Servicios: 1,           
+        Id_Empleados: 1,          
         Fecha: '2025-07-10',
         Total: 120000.00,
         Estado: 1,
