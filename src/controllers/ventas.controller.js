@@ -107,7 +107,8 @@ exports.obtenerVentaPorId = async (req, res) => {
           include: [
             { model: Productos, as: 'Id_Productos_Producto' },
             { model: Producto_Tallas, as: 'Id_Producto_Tallas_Producto_Talla' },
-            { model: Producto_Tamano_Insumos, as: 'Id_Producto_Tamano_Insumos_Producto_Tamano_Insumo' }
+            { model: Producto_Tamano_Insumos, as: 'Id_Producto_Tamano_Insumos_Producto_Tamano_Insumo' },
+            { model: Servicios, as: 'Servicio' }
           ]
         },
         {
