@@ -278,3 +278,99 @@ exports.crearVenta = async (req, res) => {
 /**
  *--------------------------------------------------------------------------------------
  */
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Marcar venta como completada (cambiar estado de 3 a 1)
+ * --------------------------------------------------------------------------------------
+ */
+exports.marcarVentaCompletada = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const venta = await Ventas.findByPk(id);
+    
+    if (!venta) {
+      return res.status(404).json({ 
+        status: 'error', 
+        message: 'Venta no encontrada' 
+      });
+    }
+
+    if (venta.Estado !== 3) {
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'La venta debe tener estado 3 (pendiente) para poder marcarla como completada' 
+      });
+    }
+
+    await venta.update({ Estado: 1 });
+
+    res.json({
+      status: 'success',
+      message: 'Venta marcada como completada correctamente',
+      data: {
+        Id_Ventas: venta.Id_Ventas,
+        Estado: venta.Estado,
+        EstadoDescripcion: 'Completada'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al marcar venta como completada:', error);
+    res.status(500).json({
+      status: 'error',
+      message: process.env.NODE_ENV === 'development'
+        ? `Error al marcar venta como completada: ${error.message}`
+        : 'Error al marcar venta como completada'
+    });
+  }
+};
+
+/**
+ * --------------------------------------------------------------------------------------
+ * Anular venta (cambiar estado de 3 a 2)
+ * --------------------------------------------------------------------------------------
+ */
+exports.anularVenta = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const venta = await Ventas.findByPk(id);
+    
+    if (!venta) {
+      return res.status(404).json({ 
+        status: 'error', 
+        message: 'Venta no encontrada' 
+      });
+    }
+
+    if (venta.Estado !== 3) {
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'La venta debe tener estado 3 (pendiente) para poder anularla' 
+      });
+    }
+
+    await venta.update({ Estado: 2 });
+
+    res.json({
+      status: 'success',
+      message: 'Venta anulada correctamente',
+      data: {
+        Id_Ventas: venta.Id_Ventas,
+        Estado: venta.Estado,
+        EstadoDescripcion: 'Anulada'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al anular venta:', error);
+    res.status(500).json({
+      status: 'error',
+      message: process.env.NODE_ENV === 'development'
+        ? `Error al anular venta: ${error.message}`
+        : 'Error al anular venta'
+    });
+  }
+};
