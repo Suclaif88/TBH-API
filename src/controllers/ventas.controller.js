@@ -183,6 +183,7 @@ exports.crearVenta = async (req, res) => {
       Fecha,
       M_Pago,
       Referencia,
+      Estado = 1,
       Detalle_Venta: Detalles = []
     } = req.body;
 
@@ -210,7 +211,7 @@ exports.crearVenta = async (req, res) => {
       Id_Empleados,
       Fecha,
       Total: total,
-      Estado: 1,
+      Estado: Estado,
       M_Pago,
       Referencia: Referencia || null
     }, { transaction: t });
