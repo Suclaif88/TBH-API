@@ -3,9 +3,9 @@ const {
   crearDevolucion,
   listarDevoluciones,
   obtenerDevolucionPorId,
-  actualizarDevolucion,
   eliminarDevolucion,
-  cambiarEstadoDevolucion
+  cambiarEstadoDevolucion,
+  obtenerComprasRopaCliente,
 } = require('../controllers/devoluciones.controller.js');
 const verificarToken = require('../middleware/authMiddleware');
 const autorizar = require('../middleware/checkPermission');
@@ -18,8 +18,12 @@ router.use(autorizar('Devoluciones'));
 router.post('/', crearDevolucion);
 router.get('/', listarDevoluciones);
 router.get('/:id', obtenerDevolucionPorId);
-router.put('/:id', actualizarDevolucion);
+
 router.delete('/:id', eliminarDevolucion);
-router.put('/estado/:id', cambiarEstadoDevolucion)
+
+router.put('/:id/estado', cambiarEstadoDevolucion);
+
+router.get('/cliente/:id/compras-ropa', obtenerComprasRopaCliente);
 
 module.exports = router;
+
