@@ -26,7 +26,6 @@ const ProductosRoutes = require('./routes/productos.routes.js');
 const tallasRoutes = require('./routes/tallas.routes.js');
 const tamanoRoutes = require('./routes/tamano.routes.js');
 const correoRoutes = require('./routes/correo.routes.js');
-const detalledevolucionesRoutes = require('./routes/detalleDevolucion.routes.js')
 const empleadoServicioRoutes = require ('./routes/empleadoServicio.routes.js')
 const servicioImagenRoutes = require ('./routes/servicio_imagen-routes.js')
 const novedadeshorariosRoutes = require('./routes/novedades_horarios.routes.js')
@@ -55,7 +54,6 @@ router.use('/devoluciones',devolucionesRoutes);
 router.use('/clientes', clientesRoutes);
 router.use('/agendamiento', agendamientoRoutes);
 router.use('/servicios', serviciosRoutes);
-router.use('/detalledevolucion',detalledevolucionesRoutes)
 router.use('/empleadoservicios', empleadoServicioRoutes)
 router.use('/servicio-imagen', servicioImagenRoutes)
 router.use('/novedadeshorarios',novedadeshorariosRoutes)
