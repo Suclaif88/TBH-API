@@ -57,31 +57,17 @@ const calcularPrecio = async (producto, tallas, tamanos, cantidadTotal, transact
   let precioTotal = 0;
   
   try {
-    console.log('Calculando precio para producto:', producto.Nombre);
-    console.log('Propiedades del producto:', {
-      Precio_Venta: producto.Precio_Venta
-    });
-    console.log('Tallas recibidas:', tallas);
-    console.log('Tamaños recibidos:', tamanos);
-    console.log('Cantidad total:', cantidadTotal);
-    
     // Determinar tipo de producto basado en los datos recibidos
     if (tamanos && tamanos.length > 0) {
       // Producto con tamaños (perfumes) - usar PrecioTotal que ya viene calculado
-      console.log('Producto con tamaños (perfume), usando PrecioTotal existente');
       for (const tamano of tamanos) {
-        console.log('Procesando tamaño:', tamano);
-        
         // Para perfumes: usar PrecioTotal que ya viene calculado correctamente
         const precioTamaño = Number(tamano.PrecioTotal || 0);
         precioTotal += precioTamaño;
-        console.log(`Sumando ${precioTamaño} del tamaño ${tamano.nombre} (PrecioTotal ya calculado)`);
       }
     } else if (tallas && tallas.length > 0) {
       // Producto con tallas (ropa) - calcular por cada talla individualmente
-      console.log('Producto con tallas (ropa), calculando por tallas');
       for (const talla of tallas) {
-        console.log('Procesando talla:', talla);
         // Buscar información de la talla en la base de datos
         const tallaInfo = await Producto_Tallas.findOne({
           where: {
@@ -95,49 +81,37 @@ const calcularPrecio = async (producto, tallas, tamanos, cantidadTotal, transact
           // Para ropa con tallas: (Precio base + Precio talla) × Cantidad de la talla
           const precioPorTalla = (Number(producto.Precio_Venta) + Number(tallaInfo.Precio)) * talla.cantidad;
           precioTotal += precioPorTalla;
-          console.log(`Talla ${talla.talla} encontrada, precio: ${tallaInfo.Precio}, cantidad: ${talla.cantidad}, subtotal: ${precioPorTalla}`);
         } else {
           // Si no se encuentra la talla en la BD, usar solo el precio base del producto
           const precioPorTalla = Number(producto.Precio_Venta) * talla.cantidad;
           precioTotal += precioPorTalla;
-          console.log(`Talla ${talla.talla} no encontrada en BD, usando precio base: ${producto.Precio_Venta}, cantidad: ${talla.cantidad}, subtotal: ${precioPorTalla}`);
         }
       }
     } else {
       // Producto normal: precio base × cantidad total del item
-      console.log('Producto normal, usando precio base');
       precioTotal = Number(producto.Precio_Venta) * cantidadTotal;
-      console.log(`Precio base: ${producto.Precio_Venta} × cantidad total: ${cantidadTotal} = ${precioTotal}`);
     }
     
-    console.log('Precio total calculado:', precioTotal);
-    
-         // Si el precio calculado es 0 o NaN, recalcular
-     if (!precioTotal || isNaN(precioTotal)) {
-       console.log('Precio calculado es inválido, recalculando...');
-       if (tamanos && tamanos.length > 0) {
-         precioTotal = tamanos.reduce((sum, tamano) => {
-           // Usar PrecioTotal existente, no recalcular
-           const precioTamaño = Number(tamano.PrecioTotal || 0);
-           console.log(`Recalculando: ${tamano.nombre} = PrecioTotal: ${precioTamaño}`);
-           return sum + precioTamaño;
-         }, 0);
-         console.log('Precio recalculado desde tamaños:', precioTotal);
-       } else {
-         precioTotal = Number(producto.Precio_Venta) * cantidadTotal;
-         console.log('Precio recalculado desde producto base:', precioTotal);
-       }
-     }
-    
-  } catch (error) {
-    console.error('Error al calcular precio:', error);
-    // Si hay error en el cálculo, usar precio base
-    precioTotal = Number(producto.Precio_Venta) * cantidadTotal;
-  }
-  
-  console.log('Precio final retornado:', precioTotal);
-  return precioTotal;
-};
+    // Si el precio calculado es 0 o NaN, recalcular
+    if (!precioTotal || isNaN(precioTotal)) {
+      if (tamanos && tamanos.length > 0) {
+        precioTotal = tamanos.reduce((sum, tamano) => {
+          // Usar PrecioTotal existente, no recalcular
+          const precioTamaño = Number(tamano.PrecioTotal || 0);
+          return sum + precioTamaño;
+        }, 0);
+      } else {
+        precioTotal = Number(producto.Precio_Venta) * cantidadTotal;
+      }
+    }
+     
+   } catch (error) {
+     // Si hay error en el cálculo, usar precio base
+     precioTotal = Number(producto.Precio_Venta) * cantidadTotal;
+   }
+   
+   return precioTotal;
+ };
 
 /**
  * --------------------------------------------------------------------------------------
@@ -397,7 +371,7 @@ exports.crearVenta = async (req, res) => {
       Detalle_Venta: Detalles = []
     } = req.body;
 
-    console.log('Datos recibidos:', { Id_Cliente, Id_Empleados, Fecha, M_Pago, Detalles });
+    
 
     // Validaciones básicas
     if (!Id_Cliente || !Id_Empleados || !Fecha || !M_Pago || Detalles.length === 0) {
@@ -431,16 +405,12 @@ exports.crearVenta = async (req, res) => {
     let subtotalDetalle = 0;
     const detallesProcesados = [];
 
-    for (const item of Detalles) {
-             console.log('Procesando item:', item);
-       console.log('Item Tallas_Data:', item.Tallas_Data);
-       console.log('Item Tallas:', item.Tallas);
-      
-             // Validar que el producto existe
-               const producto = await Productos.findByPk(item.Id_Productos, { 
-          transaction: t,
-          attributes: ['Id_Productos', 'Nombre', 'Precio_Venta']
-        });
+         for (const item of Detalles) {
+       // Validar que el producto existe
+       const producto = await Productos.findByPk(item.Id_Productos, { 
+         transaction: t,
+         attributes: ['Id_Productos', 'Nombre', 'Precio_Venta']
+       });
        if (!producto) {
          await t.rollback();
          return res.status(400).json({ 
@@ -448,42 +418,34 @@ exports.crearVenta = async (req, res) => {
            message: `Producto con ID ${item.Id_Productos} no encontrado` 
          });
        }
-       
-               console.log('Producto encontrado:', {
-          Id_Productos: producto.Id_Productos,
-          Nombre: producto.Nombre,
-          Precio_Venta: producto.Precio_Venta
-        });
 
       // Procesar tallas y tamaños
       let tallas = item.Tallas || [];
       let tamanos = item.Tamanos || [];
       
-      // Si Tamanos_Data viene como string JSON, parsearlo
-      if (item.Tamanos_Data && typeof item.Tamanos_Data === 'string') {
-        try {
-          tamanos = JSON.parse(item.Tamanos_Data);
-        } catch (e) {
-          console.error('Error al parsear Tamanos_Data:', e);
-          tamanos = [];
-        }
-      } else if (item.Tamanos_Data && Array.isArray(item.Tamanos_Data)) {
-        // Si ya es un array, usarlo directamente
-        tamanos = item.Tamanos_Data;
-      }
-      
-      // Si Tallas_Data viene como string JSON, parsearlo
-      if (item.Tallas_Data && typeof item.Tallas_Data === 'string') {
-        try {
-          tallas = JSON.parse(item.Tallas_Data);
-        } catch (e) {
-          console.error('Error al parsear Tallas_Data:', e);
-          tallas = [];
-        }
-      } else if (item.Tallas_Data && Array.isArray(item.Tallas_Data)) {
-        // Si ya es un array, usarlo directamente
-        tallas = item.Tallas_Data;
-      }
+             // Si Tamanos_Data viene como string JSON, parsearlo
+       if (item.Tamanos_Data && typeof item.Tamanos_Data === 'string') {
+         try {
+           tamanos = JSON.parse(item.Tamanos_Data);
+         } catch (e) {
+           tamanos = [];
+         }
+       } else if (item.Tamanos_Data && Array.isArray(item.Tamanos_Data)) {
+         // Si ya es un array, usarlo directamente
+         tamanos = item.Tamanos_Data;
+       }
+       
+       // Si Tallas_Data viene como string JSON, parsearlo
+       if (item.Tallas_Data && typeof item.Tallas_Data === 'string') {
+         try {
+           tallas = JSON.parse(item.Tallas_Data);
+         } catch (e) {
+           tallas = [];
+         }
+       } else if (item.Tallas_Data && Array.isArray(item.Tallas_Data)) {
+         // Si ya es un array, usarlo directamente
+         tallas = item.Tallas_Data;
+       }
       
       // Procesar y normalizar las tallas para asegurar que tengan la estructura correcta
       if (tallas && tallas.length > 0) {
@@ -507,30 +469,11 @@ exports.crearVenta = async (req, res) => {
         }).filter(talla => talla.talla && talla.talla.trim() !== ''); // Filtrar tallas vacías
       }
 
-             console.log('Tallas procesadas:', tallas);
-       console.log('Tamaños procesados:', tamanos);
-       
-       // Debug: mostrar estructura de datos de tallas
-       if (tallas && tallas.length > 0) {
-         console.log('Estructura de datos de tallas:');
-         tallas.forEach((talla, index) => {
-           console.log(`Talla ${index}:`, {
-             talla: talla.talla,
-             Talla: talla.Talla,
-             nombre: talla.nombre,
-             cantidad: talla.cantidad,
-             Cantidad: talla.Cantidad,
-             precio: talla.precio,
-             Precio: talla.Precio
-           });
-         });
-       }
+             
 
-      // Calcular precio correcto
-      const precioCalculado = await calcularPrecio(producto, tallas, tamanos, item.Cantidad, t);
-      const subtotalCalculado = precioCalculado;
-
-      console.log('Precio calculado:', { precioCalculado, subtotalCalculado });
+             // Calcular precio correcto
+       const precioCalculado = await calcularPrecio(producto, tallas, tamanos, item.Cantidad, t);
+       const subtotalCalculado = precioCalculado;
 
       detallesProcesados.push({
         ...item,
@@ -548,10 +491,9 @@ exports.crearVenta = async (req, res) => {
       subtotalDetalle += subtotalCalculado;
     }
 
-    const total = subtotalDetalle + subtotalAgendamiento;
-    console.log('Total calculado:', { subtotalDetalle, subtotalAgendamiento, total });
+         const total = subtotalDetalle + subtotalAgendamiento;
 
-    // Crear la venta
+     // Crear la venta
     const venta = await Ventas.create({
       Id_Agendamientos: Id_Agendamientos || null,
       Id_Cliente,
@@ -563,12 +505,8 @@ exports.crearVenta = async (req, res) => {
       Referencia: Referencia || null
     }, { transaction: t });
 
-    console.log('Venta creada:', venta.Id_Ventas);
-
-    // Crear detalles de venta con información completa de tallas/tamaños
-    for (const item of detallesProcesados) {
-      console.log('Guardando detalle con tallas:', item.Tallas);
-      console.log('Guardando detalle con tamaños:', item.Tamanos);
+              // Crear detalles de venta con información completa de tallas/tamaños
+     for (const item of detallesProcesados) {
       
       // Determinar qué datos guardar para Tallas_Data y Tamanos_Data
       let tallasParaGuardar = [];
@@ -632,15 +570,9 @@ exports.crearVenta = async (req, res) => {
           }).filter(talla => talla.talla && talla.talla.trim() !== ''); // Filtrar tallas vacías
         }
        
-       console.log('Tallas para guardar:', tallasParaGuardar);
-       console.log('Tamaños para guardar (con PrecioTotal recalculado):', tamanosParaGuardar);
-       
-       // Verificar que los arrays no sean undefined antes de hacer JSON.stringify
-       const tallasData = tallasParaGuardar && tallasParaGuardar.length > 0 ? JSON.stringify(tallasParaGuardar) : null;
-       const tamanosData = tamanosParaGuardar && tamanosParaGuardar.length > 0 ? JSON.stringify(tamanosParaGuardar) : null;
-       
-       console.log('Tallas_Data a guardar:', tallasData);
-       console.log('Tamanos_Data a guardar:', tamanosData);
+               // Verificar que los arrays no sean undefined antes de hacer JSON.stringify
+        const tallasData = tallasParaGuardar && tallasParaGuardar.length > 0 ? JSON.stringify(tallasParaGuardar) : null;
+        const tamanosData = tamanosParaGuardar && tamanosParaGuardar.length > 0 ? JSON.stringify(tamanosParaGuardar) : null;
        
                        // Crear objeto de datos para el detalle, excluyendo campos que pueden no existir
          const detalleData = {
@@ -658,12 +590,8 @@ exports.crearVenta = async (req, res) => {
         if (tallasData) detalleData.Tallas_Data = tallasData;
         if (tamanosData) detalleData.Tamanos_Data = tamanosData;
 
-        const detalleVenta = await Detalle_Venta.create(detalleData, { transaction: t });
-      
-             console.log('Detalle creado:', detalleVenta.Id_Detalle_Venta);
-       console.log('Tallas_Data guardado:', detalleVenta.Tallas_Data || 'No disponible');
-       console.log('Tamanos_Data guardado:', detalleVenta.Tamanos_Data || 'No disponible');
-    }
+                 const detalleVenta = await Detalle_Venta.create(detalleData, { transaction: t });
+     }
 
     await t.commit();
 
