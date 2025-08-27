@@ -1,4 +1,8 @@
-const { Usuarios,Clientes,Empleados,Roles } = require('../models');
+const { Usuarios,
+  Clientes,
+  Empleados,
+  Roles 
+} = require('../models');
 const bcrypt = require('bcryptjs');
 
 exports.crearUsuario = async (req, res) => {
@@ -91,26 +95,66 @@ exports.listarUsuarioPorDocumento = async (req, res) => {
 
 
 exports.actualizarUsuario = async (req, res) => {
-  try {
+const t = await Usuarios.sequelize.transaction();
+
+   try {
     const { id } = req.params;
     const usuario = await Usuarios.findOne({ where: { Id_Usuario: id } });
 
     if (!usuario) {
+      await t.rollback();
       return res.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
     }
 
     const datosActualizados = { ...req.body };
 
+  
     if (datosActualizados.Password && datosActualizados.Password.trim() !== "") {
       datosActualizados.Password = await bcrypt.hash(datosActualizados.Password, 10);
     } else {
       delete datosActualizados.Password;
     }
 
-    await Usuarios.update(datosActualizados, { where: { Id_Usuario: id } });
+ 
+    await Usuarios.update(datosActualizados, {
+      where: { Id_Usuario: id },
+      transaction: t
+    });
 
-    res.json({ status: 'success', message: 'Usuario actualizado' });
+  
+    const rol = await Roles.findOne({ where: { Id: datosActualizados.Rol_Id || usuario.Rol_Id } });
+    if (!rol) {
+      throw new Error("Rol no válido");
+    }
+
+    const datosAdicionales = {
+      Documento: datosActualizados.Documento,
+      Tipo_Documento: datosActualizados.Tipo_Documento,
+      Nombre: datosActualizados.Nombre,
+      Celular: datosActualizados.Celular,
+      F_Nacimiento: datosActualizados.F_Nacimiento,
+      Direccion: datosActualizados.Direccion,
+      Sexo: datosActualizados.Sexo,
+      Correo: datosActualizados.Correo,
+    };
+
+    if (rol.Nombre === "Cliente") {
+      await Clientes.update(datosAdicionales, {
+        where: { Documento: usuario.Documento },
+        transaction: t
+      });
+    } else if (rol.Nombre === "Empleado") {
+      await Empleados.update(datosAdicionales, {
+        where: { Documento: usuario.Documento },
+        transaction: t
+      });
+    }
+
+    await t.commit();
+    res.json({ status: 'success', message: 'Usuario actualizado correctamente' });
+
   } catch (err) {
+    await t.rollback();
     res.status(500).json({ status: 'error', message: err.message });
   }
 };
