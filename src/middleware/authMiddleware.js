@@ -6,6 +6,11 @@ const authMiddleware = (req, res, next) => {
   const token = req.cookies?.token;
 
   if (!token) {
+    if (req.originalUrl === "/api/me") {
+      req.user = null;
+      logger.info(`Acceso sin sesión a ${req.originalUrl}`);
+      return next();
+    }
     const message = `Acceso denegado: No se proporcionó token en cookie para la ruta ${req.originalUrl}`;
     logger.warn(message);
     return res.status(401).json({ message: 'Acceso denegado. Token no proporcionado.' });
@@ -19,6 +24,11 @@ const authMiddleware = (req, res, next) => {
     logger.info(message);
     next();
   } catch (error) {
+    if (req.originalUrl === "/api/me") {
+      req.user = null;
+      logger.info(`Token inválido/expirado en ${req.originalUrl}, respondiendo como visitante`);
+      return next();
+    }
     const message = `Token inválido en cookie en la ruta ${req.originalUrl}: ${error.message}`;
     logger.error(message);
     return res.status(401).json({ message: 'Token inválido o expirado.' });
