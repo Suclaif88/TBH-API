@@ -509,37 +509,44 @@ exports.obtenerProductoById = async (req, res) => {
     }
 
     const categoria = producto.Id_Categoria_Producto_Categoria_Producto;
-    let insumoExtra = null;
+    let tamanosConInsumos = [];
 
     if (categoria?.Nombre === 'Perfume') {
       const tamanos = await Producto_Tamano.findAll({
         where: { Id_Productos: producto.Id_Productos },
-        as: "Producto_Tamano",
         include: [
           {
-            model: Producto_Tamano_Insumos,
-            as: "Producto_Tamano_Insumos",
-            include: [
-              {
-                model: Insumos,
-                as: 'Id_Insumos_Insumo',
-                attributes: ['Id_Insumos', 'Nombre']
-              }
-            ]
+            model: Tamano,
+            as: 'Id_Tamano_Tamano',
+            attributes: ['Id_Tamano', 'Nombre', 'Cantidad_Maxima', 'Precio_Venta']
+          },
+          {
+                         model: Producto_Tamano_Insumos,
+             as: "Producto_Tamano_Insumos",
+             include: [
+               {
+                 model: Insumos,
+                 as: 'Id_Insumos_Insumo',
+                 attributes: ['Id_Insumos', 'Nombre', 'Stock']
+               }
+             ]
           }
         ]
       });
 
-      for (const tam of tamanos) {
-        const insumoAsociado = tam.Producto_Tamano_Insumos?.[0];
-        if (insumoAsociado?.Id_Insumos_Insumo) {
-          insumoExtra = {
-            Id_Insumos: insumoAsociado.Id_Insumos_Insumo.Id_Insumos,
-            Nombre: insumoAsociado.Id_Insumos_Insumo.Nombre
-          };
-          break;
-        }
-      }
+      tamanosConInsumos = tamanos.map(tam => ({
+        Id_Producto_Tamano: tam.Id_Producto_Tamano,
+        Id_Tamano: tam.Id_Tamano,
+        Nombre: tam.Id_Tamano_Tamano?.Nombre || 'N/A',
+        Cantidad_Maxima: tam.Id_Tamano_Tamano?.Cantidad_Maxima || 0,
+        Precio_Venta: tam.Id_Tamano_Tamano?.Precio_Venta || 0,
+                 Insumos: (tam.Producto_Tamano_Insumos || []).map(insumo => ({
+           Id_Insumo: insumo.Id_Insumos_Insumo?.Id_Insumos,
+           Nombre: insumo.Id_Insumos_Insumo?.Nombre || 'N/A',
+           Stock: insumo.Id_Insumos_Insumo?.Stock || 0,
+           Cantidad_Consumo: insumo.Cantidad_Consumo || 0
+         }))
+      }));
     }
 
     let tallasSeleccionadas = [];
@@ -562,7 +569,7 @@ exports.obtenerProductoById = async (req, res) => {
         Nombre: categoria?.Nombre,
         Es_Ropa: categoria?.Es_Ropa
       },
-      InsumoExtra: insumoExtra,
+      TamanosConInsumos: tamanosConInsumos,
       TallasSeleccionadas: tallasSeleccionadas,
       Imagenes: (producto.Producto_Imagens || []).map(pi => ({
         Id_Imagenes: pi.Id_Imagenes_Imagene?.Id_Imagenes,

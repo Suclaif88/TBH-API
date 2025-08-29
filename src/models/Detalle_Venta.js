@@ -58,6 +58,14 @@ module.exports = function(sequelize, DataTypes) {
     Subtotal: {
       type: DataTypes.DECIMAL(10,2),
       allowNull: true
+    },
+    Tallas_Data: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    Tamanos_Data: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     sequelize,
