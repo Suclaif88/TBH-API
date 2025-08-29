@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware'); 
+const authMiddleware = require('../middleware/authMiddleware');
 
 router.get('/', authMiddleware, (req, res) => {
-  res.json({ user: req.user });
+  if (!req.user) {
+    return res.json({ user: null });
+  }
+  return res.json({ user: req.user });
 });
 
 module.exports = router;
