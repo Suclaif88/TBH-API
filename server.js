@@ -41,11 +41,16 @@ const iniciarServidor = async () => {
     app.use(cors({
       origin: function(origin, callback) {
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-          const msg = `El CORS policy no permite el acceso desde el origen: ${origin}`;
-          return callback(new Error(msg), false);
+
+        if (
+          allowedOrigins.includes(origin) ||
+          origin.endsWith('.vercel.app')
+        ) {
+          return callback(null, true);
         }
-        return callback(null, true);
+
+        const msg = `El CORS policy no permite el acceso desde el origen: ${origin}`;
+        return callback(new Error(msg), false);
       },
       credentials: true
     }));
