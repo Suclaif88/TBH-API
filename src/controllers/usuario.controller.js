@@ -139,15 +139,25 @@ const t = await Usuarios.sequelize.transaction();
     };
 
     if (rol.Nombre === "Cliente") {
-      await Clientes.update(datosAdicionales, {
-        where: { Documento: usuario.Documento },
-        transaction: t
+      const clienteExistente = await Clientes.findOne({
+        where: { Documento: datosAdicionales.Documento }
       });
+
+      if (clienteExistente) {
+        await clienteExistente.update(datosAdicionales, { transaction: t });
+      } else {
+        await Clientes.create(datosAdicionales, { transaction: t });
+      }
     } else if (rol.Nombre === "Empleado") {
-      await Empleados.update(datosAdicionales, {
-        where: { Documento: usuario.Documento },
-        transaction: t
+      const empleadoExistente = await Empleados.findOne({
+        where: { Documento: datosAdicionales.Documento }
       });
+
+      if (empleadoExistente) {
+        await empleadoExistente.update(datosAdicionales, { transaction: t });
+      } else {
+        await Empleados.create(datosAdicionales, { transaction: t });
+      }
     }
 
     await t.commit();

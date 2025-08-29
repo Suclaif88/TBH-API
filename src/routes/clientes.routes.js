@@ -15,15 +15,16 @@ const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
+router.get('/documento/:documento', listarClientePorDocumento);
+router.post('/', crearCliente);
+router.put('/:id', actualizarCliente);
+
 router.use(verificarToken);
 router.use(autorizar('Clientes'));
 
 router.get('/', listarClientes);
-router.get('/id/:id', listarClientePorId);
-router.get('/documento/:documento', listarClientePorDocumento);
+router.get('/id/:id', listarClientePorId);  
 router.get('/email/:email', buscarClientePorEmail);
-router.post('/', crearCliente);
-router.put('/:id', actualizarCliente);
 router.delete('/:id', eliminarCliente);
 router.put('/estado/:id', cambiarEstadoCliente);
 
