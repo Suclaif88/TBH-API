@@ -1,6 +1,7 @@
-const { Clientes } = require('../models');
+const { Clientes, Usuarios, Roles } = require('../models');
 
 exports.crearCliente = async (req, res) => {
+    const t = await Clientes.sequelize.transaction();
     try {
         const { TipoDocumento, Documento, Nombre, Correo, Celular, Direccion, FechaNacimiento, Sexo, Estado } = req.body;
 
@@ -8,18 +9,21 @@ exports.crearCliente = async (req, res) => {
 
         if (!TipoDocumento || !Documento || !Nombre || !Correo || !Celular || !Direccion || !FechaNacimiento) {
             console.error('Error (400): Faltan campos obligatorios para crear cliente.');
+            await t.rollback();
             return res.status(400).json({ status: 'error', message: 'Todos los campos obligatorios deben ser proporcionados.' });
         }
 
         const existeDocumento = await Clientes.findOne({ where: { Documento: Documento } });
         if (existeDocumento) {
             console.error('Error (409): El documento ya está registrado.');
+            await t.rollback();
             return res.status(409).json({ status: 'error', message: 'El documento ya está registrado.' });
         }
 
         const existeCorreo = await Clientes.findOne({ where: { Correo: Correo } });
         if (existeCorreo) {
             console.error('Error (409): El correo ya está registrado.');
+            await t.rollback();
             return res.status(409).json({ status: 'error', message: 'El correo ya está registrado.' });
         }
 
@@ -35,13 +39,30 @@ exports.crearCliente = async (req, res) => {
             Estado: Estado !== undefined ? Estado : true,
         };
 
-        console.log('Backend: Intentando crear cliente con datos:', nuevoClienteData);
-
-        const nuevoCliente = await Clientes.create(nuevoClienteData);
+        const nuevoCliente = await Clientes.create(nuevoClienteData, { transaction: t });
         console.log('Backend: Cliente creado exitosamente:', nuevoCliente);
+
+        const rolCliente = await Roles.findOne({ where: { Nombre: 'Cliente' } });
+        if (!rolCliente) {
+            console.error('Error: Rol "Cliente" no encontrado.');
+            await t.rollback();
+            return res.status(500).json({ status: 'error', message: 'Rol "Cliente" no encontrado.' });
+        }
+
+        await Usuarios.create({
+            Documento: Documento,
+            Correo: Correo,
+            Password: 'password_generada_aleatoriamente',
+            Estado: Estado !== undefined ? Estado : true,
+            Rol_Id: rolCliente.Id
+        }, { transaction: t });
+        console.log('Backend: Usuario asociado al cliente creado exitosamente.');
+
+        await t.commit();
         res.status(201).json({ status: 'success', data: nuevoCliente });
 
     } catch (err) {
+        await t.rollback();
         console.error('Backend: Error en crearCliente:', err);
         res.status(500).json({ status: 'error', message: err.message || 'Ocurrió un error interno del servidor al crear cliente.' });
     }
@@ -100,6 +121,7 @@ exports.listarClientePorDocumento = async (req, res) => {
 };
 
 exports.actualizarCliente = async (req, res) => {
+    const t = await Clientes.sequelize.transaction();
     try {
         const { id } = req.params;
         console.log(`Backend: Actualizando cliente con Id_Cliente: ${id}. Datos:`, req.body);
@@ -108,6 +130,7 @@ exports.actualizarCliente = async (req, res) => {
 
         if (!cliente) {
             console.log(`Cliente con Id_Cliente ${id} no encontrado para actualizar.`);
+            await t.rollback();
             return res.status(404).json({ status: 'error', message: 'Cliente no encontrado' });
         }
 
@@ -125,32 +148,44 @@ exports.actualizarCliente = async (req, res) => {
         delete datosActualizados.Password;
 
         console.log('Backend: Datos que se usarán para actualizar:', datosActualizados);
-        await Clientes.update(datosActualizados, { where: { Id_Cliente: id } });
+        await Clientes.update(datosActualizados, { where: { Id_Cliente: id }, transaction: t });
 
-        console.log(`Backend: Cliente ${id} actualizado exitosamente.`);
+        await Usuarios.update({
+            Documento: datosActualizados.Documento,
+            Correo: datosActualizados.Correo,
+            Estado: datosActualizados.Estado
+        }, { where: { Documento: cliente.Documento }, transaction: t });
+
+        console.log(`Backend: Cliente ${id} y usuario asociado actualizados exitosamente.`);
+        await t.commit();
         res.json({ status: 'success', message: 'Cliente actualizado' });
     } catch (err) {
+        await t.rollback();
         console.error('Backend: Error en actualizarCliente:', err);
         res.status(500).json({ status: 'error', message: err.message || 'Error al actualizar cliente.' });
     }
 };
 
 exports.eliminarCliente = async (req, res) => {
+    const t = await Clientes.sequelize.transaction();
     try {
         const { id } = req.params;
-        const numDeleted = await Clientes.destroy({
-            where: { Id_Cliente: id }
-        });
-
-        if (numDeleted === 0) {
+        const cliente = await Clientes.findByPk(id);
+        if (!cliente) {
             console.log(`Cliente con Id_Cliente ${id} no encontrado para eliminar.`);
+            await t.rollback();
             return res.status(404).json({ status: 'error', message: 'Cliente no encontrado o ya eliminado.' });
         }
 
-        console.log(`Backend: Cliente ${id} ELIMINADO FÍSICAMENTE de la base de datos.`);
+        await Clientes.destroy({ where: { Id_Cliente: id }, transaction: t });
+        await Usuarios.destroy({ where: { Documento: cliente.Documento }, transaction: t });
+
+        await t.commit();
+        console.log(`Backend: Cliente ${id} y usuario asociado eliminados FÍSICAMENTE de la base de datos.`);
         res.json({ status: 'success', message: 'Cliente eliminado correctamente' });
 
     } catch (err) {
+        await t.rollback();
         console.error('Backend: Error en eliminarCliente (hard delete):', err);
         let errorMessage = 'No se pudo eliminar el cliente.';
         if (err.name === 'SequelizeForeignKeyConstraintError') {
@@ -179,26 +214,32 @@ exports.buscarClientePorEmail = async (req, res) => {
 };
 
 exports.cambiarEstadoCliente = async (req, res) => {
+    const t = await Clientes.sequelize.transaction();
     try {
         const id = req.params.id;
         console.log(`Backend: Intentando cambiar estado (activar/desactivar) de cliente con Id_Cliente: ${id}`);
         const cliente = await Clientes.findByPk(id);
         if (!cliente) {
             console.log(`Cliente con Id_Cliente ${id} no encontrado para cambiar estado.`);
+            await t.rollback();
             return res.status(404).json({ status: 'error', message: 'Cliente no encontrado' });
         }
 
         cliente.Estado = !cliente.Estado;
-        await cliente.save();
+        await cliente.save({ transaction: t });
+        
+        await Usuarios.update({ Estado: cliente.Estado }, { where: { Correo: cliente.Correo }, transaction: t });
         
         const nuevoEstadoMensaje = cliente.Estado ? 'activado' : 'desactivado';
-        console.log(`Backend: Cliente ${id} ha sido ${nuevoEstadoMensaje} correctamente (cambio de estado).`);
+        console.log(`Backend: Cliente ${id} y usuario asociado han sido ${nuevoEstadoMensaje} correctamente.`);
+        await t.commit();
         res.json({
             status: 'success',
             mensaje: `Cliente ${nuevoEstadoMensaje} correctamente`,
             cliente
         });
     } catch (error) {
+        await t.rollback();
         console.error('Backend: Error en cambiarEstadoCliente:', error);
         res.status(500).json({ status: 'error', message: error.message || 'Error al cambiar estado del cliente.' });
     }
