@@ -202,5 +202,5 @@ exports.obtenerCategoriasActivasPublicas = async (req, res) => {
     res.json({ status: 'success', data: categoriasActivas });
   } catch (error) {
     res.status(404).json({ status: 'error', message: 'Error al obtener Categorias Activas' });
-  }
+  }  
 };
