@@ -190,17 +190,3 @@ exports.obtenerCategoriasNoRopa = async (req, res) => {
     res.status(500).json({ status: 'error', message: error.message });
   }
 }
-// Controlador para endpoint público
-exports.obtenerCategoriasActivasPublicas = async (req, res) => {
-  try {
-    const categoriasActivas = await Categoria_Productos.findAll({
-      where: {
-        Estado: true
-      },
-      attributes: ['Id_Categoria_Producto', 'Nombre', 'Descripcion', 'Es_Ropa'] // Solo campos necesarios
-    });
-    res.json({ status: 'success', data: categoriasActivas });
-  } catch (error) {
-    res.status(404).json({ status: 'error', message: 'Error al obtener Categorias Activas' });
-  }  
-};
