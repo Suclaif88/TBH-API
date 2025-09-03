@@ -8,13 +8,15 @@ const {
   obtenerCategoriasRopa,
   obtenerCategoriasNoRopa,
   eliminarCategoria,
-  cambiarEstadoCategoria
+  cambiarEstadoCategoria,
+  obtenerCategoriasActivasPublicas
 } = require('../controllers/categoriaProducto.controller');
+
 const verificarToken = require('../middleware/authMiddleware');
 const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
-
+obtenerCategoriasActivasPublicas;
 router.use(verificarToken);
 router.use(autorizar('Categoria Productos'));
 
@@ -27,6 +29,9 @@ router.post('/', crearCategoria);
 router.put('/:id', actualizarCategoria);
 router.delete('/:id', eliminarCategoria);
 router.put('/estado/:id', cambiarEstadoCategoria);
+router.get('/activas', obtenerCategoriasActivas);
+router.get('/public/activas', obtenerCategoriasActivasPublicas);
 
+// En tu router de categorías producto, agrega estas rutas públicas
 
 module.exports = router;
