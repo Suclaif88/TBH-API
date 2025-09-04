@@ -7,7 +7,8 @@ const {
   buscarClientePorEmail,
   actualizarCliente,
   eliminarCliente,
-  cambiarEstadoCliente
+  cambiarEstadoCliente,
+  crearClienteCL
 } = require('../controllers/cliente.controller');
 
 const verificarToken = require('../middleware/authMiddleware');
@@ -16,12 +17,13 @@ const autorizar = require('../middleware/checkPermission');
 const router = Router();
 
 router.get('/documento/:documento', listarClientePorDocumento);
-router.post('/', crearCliente);
+router.post('/', crearClienteCL);
 router.put('/:id', actualizarCliente);
 
 router.use(verificarToken);
 router.use(autorizar('Clientes'));
 
+router.post('/', crearCliente);
 router.get('/', listarClientes);
 router.get('/id/:id', listarClientePorId);  
 router.get('/email/:email', buscarClientePorEmail);
