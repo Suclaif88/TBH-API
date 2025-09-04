@@ -190,3 +190,17 @@ exports.obtenerCategoriasNoRopa = async (req, res) => {
     res.status(500).json({ status: 'error', message: error.message });
   }
 }
+// En tu controlador de categorías producto
+exports.obtenerCategoriasActivasPublicas = async (req, res) => {
+  try {
+    const categoriasActivas = await Categoria_Productos.findAll({
+      where: {
+        Estado: true
+      },
+      attributes: ['Id_Categoria_Producto', 'Nombre', 'Descripcion', 'Es_Ropa']
+    });
+    res.json({ status: 'success', data: categoriasActivas });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
