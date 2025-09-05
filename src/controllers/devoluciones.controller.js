@@ -456,8 +456,12 @@ exports.eliminarDevolucion = async (req, res) => {
  */
 exports.obtenerComprasRopaCliente = async (req, res) => {
   const transaction = await sequelize.transaction();
+  let resultado = [];
+  
   try {
     const { id } = req.params;
+    
+    console.log('🔍 ID Cliente recibido:', id);
     
     if (!id || isNaN(id)) {
       await transaction.rollback();
@@ -466,6 +470,8 @@ exports.obtenerComprasRopaCliente = async (req, res) => {
 
     const idCliente = parseInt(id);
     const cliente = await Clientes.findByPk(idCliente, { transaction });
+    
+    console.log('👤 Cliente encontrado:', cliente ? cliente.Nombre : 'NO ENCONTRADO');
     
     if (!cliente) {
       await transaction.rollback();
@@ -477,18 +483,24 @@ exports.obtenerComprasRopaCliente = async (req, res) => {
       transaction
     });
 
+    console.log('👕 Categoría ropa encontrada:', categoriaRopa ? categoriaRopa.Id_Categoria_Producto : 'NO ENCONTRADA');
+
     if (!categoriaRopa) {
       await transaction.rollback();
       return res.status(404).json({ status: 'error', message: 'No se encontró categoría de ropa configurada' });
     }
 
     const compras = await Ventas.findAll({
-      where: { Id_Cliente: idCliente, Estado: true },
+      where: { 
+        Id_Cliente: idCliente, 
+        Estado: {
+          [Op.in]: [1, 3]
+        }
+      },
       attributes: ['Id_Ventas', 'Fecha', 'Total'],
       include: [{
         model: Detalle_Venta,
         as: 'Detalle_Venta',
-        where: { Id_Productos: { [Op.not]: null } },
         include: [
           {
             model: Productos,
@@ -519,40 +531,80 @@ exports.obtenerComprasRopaCliente = async (req, res) => {
       transaction
     });
 
-    const resultado = compras.map(compra => {
-      const comp = compra.toJSON();
-      const detallesProcesados = comp.Detalle_Venta
-        .map(detalle => {
-          const cantidadDevuelta = detalle.Detalle_Devolucions?.reduce(
-            (total, dev) => total + (dev.Cantidad || 0), 0
-          ) || 0;
-          
-          const disponible = detalle.Cantidad - cantidadDevuelta;
+    console.log('🛒 Compras encontradas:', compras.length);
+    
+    // DEBUG DETALLADO - Agrega esto
+    compras.forEach((compra, index) => {
+      console.log(`   Compra ${index + 1}:`, {
+        Id_Venta: compra.Id_Ventas,
+        Estado: compra.Estado,
+        Tiene_Detalle_Venta: !!compra.Detalle_Venta,
+        Tipo_Detalle_Venta: typeof compra.Detalle_Venta,
+        Es_Array: Array.isArray(compra.Detalle_Venta)
+      });
+      
+      if (compra.Detalle_Venta && Array.isArray(compra.Detalle_Venta)) {
+        compra.Detalle_Venta.forEach((detalle, detIndex) => {
+          console.log(`     Detalle ${detIndex + 1}:`, {
+            Id_Detalle: detalle.Id_Detalle_Venta,
+            Talla_Object: detalle.Id_Producto_Tallas_Producto_Talla,
+            Talla_Nombre: detalle.Id_Producto_Tallas_Producto_Talla?.Id_Tallas_Talla?.Nombre,
+            Tipo_Talla_Nombre: typeof detalle.Id_Producto_Tallas_Producto_Talla?.Id_Tallas_Talla?.Nombre
+          });
+        });
+      }
+    });
 
-          return disponible > 0 ? {
-            Id_Detalle_Venta: detalle.Id_Detalle_Venta,
-            Id_Productos: detalle.Id_Productos,
-            Id_Producto_Tallas: detalle.Id_Producto_Tallas,
-            Cantidad: detalle.Cantidad,
-            Disponible: disponible,
-            Precio: detalle.Precio,
-            Subtotal: detalle.Subtotal,
-            Producto: {
-              Id_Productos: detalle.Id_Productos_Producto?.Id_Productos,
-              Nombre: detalle.Id_Productos_Producto?.Nombre
-            },
-            Talla: detalle.Id_Producto_Tallas_Producto_Talla?.Id_Tallas_Talla?.Nombre || 'Única'
-          } : null;
-        })
-        .filter(Boolean);
+    // TEMPORAL: Simplifica el código para encontrar el error
+    resultado = compras.map(compra => {
+      try {
+        const comp = compra.toJSON();
+        console.log('📋 Procesando compra:', comp.Id_Ventas);
+        
+        const detallesProcesados = (comp.Detalle_Venta || [])
+          .map(detalle => {
+            console.log('   📦 Procesando detalle:', detalle.Id_Detalle_Venta);
+            
+            // Simplifica temporalmente quitando el String()
+            const tallaNombre = detalle.Id_Producto_Tallas_Producto_Talla?.Id_Tallas_Talla?.Nombre;
+            console.log('   🏷️  Talla nombre:', tallaNombre, 'Tipo:', typeof tallaNombre);
+            
+            const cantidadDevuelta = (detalle.Detalle_Devolucions || [])?.reduce(
+              (total, dev) => total + (parseInt(dev.Cantidad) || 0), 0
+            ) || 0;
+            
+            const disponible = (parseInt(detalle.Cantidad) || 0) - cantidadDevuelta;
 
-      return detallesProcesados.length > 0 ? {
-        Id_Venta: comp.Id_Ventas,
-        Fecha: comp.Fecha,
-        Total: comp.Total,
-        Detalles: detallesProcesados
-      } : null;
+            return disponible > 0 ? {
+              Id_Detalle_Venta: parseInt(detalle.Id_Detalle_Venta) || 0,
+              Id_Productos: parseInt(detalle.Id_Productos) || 0,
+              Id_Producto_Tallas: detalle.Id_Producto_Tallas ? parseInt(detalle.Id_Producto_Tallas) : null,
+              Cantidad: parseInt(detalle.Cantidad) || 0,
+              Disponible: disponible,
+              Precio: parseFloat(detalle.Precio) || 0,
+              Subtotal: parseFloat(detalle.Subtotal) || 0,
+              Producto: {
+                Id_Productos: parseInt(detalle.Id_Productos_Producto?.Id_Productos) || 0,
+                Nombre: detalle.Id_Productos_Producto?.Nombre || "Producto sin nombre"
+              },
+              Talla: tallaNombre || 'Única'  // ← SIMPLIFICADO
+            } : null;
+          })
+          .filter(Boolean);
+
+        return detallesProcesados.length > 0 ? {
+          Id_Venta: parseInt(comp.Id_Ventas) || 0,
+          Fecha: comp.Fecha,
+          Total: parseFloat(comp.Total) || 0,
+          Detalles: detallesProcesados
+        } : null;
+      } catch (error) {
+        console.error('❌ Error procesando compra:', error);
+        return null;
+      }
     }).filter(Boolean);
+
+    console.log('✅ Resultado final:', resultado.length, 'compras con productos disponibles');
 
     await transaction.commit();
 
@@ -572,10 +624,11 @@ exports.obtenerComprasRopaCliente = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('❌ ERROR en obtenerComprasRopaCliente:', error);
+    console.error('❌ Stack trace:', error.stack); 
     if (transaction && !transaction.finished) {
       await transaction.rollback();
     }
-    console.error('Error en obtenerComprasRopaCliente:', error);
     res.status(500).json({
       status: 'error',
       message: 'Error al obtener compras del cliente',
