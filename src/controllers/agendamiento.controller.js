@@ -1,5 +1,5 @@
-// controllers/agendamiento.controller.js - CORREGIDO:
-const { Agendamientos, Agendamiento_Servicios, Servicios, Empleados, Clientes } = require('../models');
+// controllers/agendamiento.controller.js - CORREGIDO con validación de novedades
+const { Agendamientos, Agendamiento_Servicios, Servicios, Empleados, Clientes, Novedades_Horarios } = require('../models');
 const { sequelize } = require("../config/db");
 const { Op } = require('sequelize');
 const { addMinutes } = require('../utils/timeHelpers');
@@ -32,10 +32,9 @@ exports.crearAgendamientos = async (req, res) => {
     // 2) Calcular duración total (en minutos) y subtotal (precio)
     let totalDuration = 0;
     let subtotal = 0;
-    // Construir array de items con precio y duracion reales
     const itemsToInsert = serviciosDB.map(s => {
       totalDuration += Number(s.Duracion);
-      subtotal += Number(s.Precio); // si prefieres usar precio enviado por cliente, cámbialo
+      subtotal += Number(s.Precio);
       return {
         Id_Servicios: s.Id_Servicios,
         Precio: s.Precio,
@@ -46,8 +45,7 @@ exports.crearAgendamientos = async (req, res) => {
     // 3) Calcular hora fin
     const Hora_Fin = addMinutes(Fecha, Hora_Inicio, totalDuration); // devuelve 'HH:MM:SS'
 
-    // 4) Validar solapamientos para el mismo empleado y fecha
-    // Condición: existe un registro tal que InicioExistente < Hora_Fin  AND  FinExistente > Hora_Inicio
+    // 4) Validar solapamientos con agendamientos existentes
     const conflicto = await Agendamientos.findOne({
       where: {
         Id_Empleados,
@@ -74,7 +72,35 @@ exports.crearAgendamientos = async (req, res) => {
       });
     }
 
-    // 5) Crear agendamiento
+    // 5) Validar solapamientos con novedades del empleado
+    const novedad = await Novedades_Horarios.findOne({
+      where: {
+        Id_Empleados,
+        Fecha,
+        [Op.and]: [
+          { Hora_Inicio: { [Op.lt]: Hora_Fin } },
+          { Hora_Fin: { [Op.gt]: Hora_Inicio } }
+        ]
+      },
+      transaction: t
+    });
+
+    if (novedad) {
+      await t.rollback();
+      return res.status(409).json({
+        status: 'error',
+        message: `El empleado tiene una novedad en ese horario (${novedad.Motivo})`,
+        conflict: {
+          Id_Novedades_Horarios: novedad.Id_Novedades_Horarios,
+          Fecha: novedad.Fecha,
+          Hora_Inicio: novedad.Hora_Inicio,
+          Hora_Fin: novedad.Hora_Fin,
+          Motivo: novedad.Motivo
+        }
+      });
+    }
+
+    // 6) Crear agendamiento
     const nuevoAgendamiento = await Agendamientos.create({
       Id_Cliente,
       Id_Empleados,
@@ -84,7 +110,7 @@ exports.crearAgendamientos = async (req, res) => {
       Subtotal: subtotal,
     }, { transaction: t });
 
-    // 6) Insertar registros en la tabla relación
+    // 7) Insertar registros en la tabla relación
     for (const item of itemsToInsert) {
       await Agendamiento_Servicios.create({
         Id_Agendamientos: nuevoAgendamiento.Id_Agendamientos,
@@ -95,7 +121,7 @@ exports.crearAgendamientos = async (req, res) => {
 
     await t.commit();
 
-    // Opcional: devolver la estructura limpia como en tu otro endpoint
+    // 8) Respuesta estructurada
     const respuesta = {
       Id_Agendamientos: nuevoAgendamiento.Id_Agendamientos,
       Fecha: nuevoAgendamiento.Fecha,
@@ -116,6 +142,7 @@ exports.crearAgendamientos = async (req, res) => {
     return res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
 
 // Función para obtener agendamientos por fecha
 exports.obtenerAgendamientosPorFecha = async (req, res) => {

@@ -1,4 +1,4 @@
-const { Empleados } = require('../models');
+const { Empleados, Servicios, Empleado_Servicio } = require('../models');
 
 exports.listarEmpleados = async (req, res) => {
   try {
@@ -115,4 +115,46 @@ exports.listarEmpleadoPorDocumento = async (req, res) => {
         console.error('Backend: Error en listarEmpleadoPorDocumento:', err);
         res.status(500).json({ status: 'error', message: err.message || 'Error al buscar Empleado por documento.' });
     }
+};
+
+exports.obtenerServiciosDeEmpleado = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Buscar al empleado
+    const empleado = await Empleados.findByPk(id);
+    if (!empleado) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Empleado no encontrado" });
+    }
+
+    // 2. Buscar en la tabla intermedia los Id_Servicios del empleado
+    const relaciones = await Empleado_Servicio.findAll({
+      where: { Id_Empleados: id },
+      attributes: ["Id_Servicios"],
+    });
+
+    const idsServicios = relaciones.map(r => r.Id_Servicios);
+
+    // 3. Traer los servicios
+    const servicios = await Servicios.findAll({
+      where: { Id_Servicios: idsServicios },
+    });
+
+    res.json({
+      status: "success",
+      empleado: {
+        Id_Empleados: empleado.Id_Empleados,
+        Nombre: empleado.Nombre,
+        Apellido: empleado.Apellido,
+      },
+      servicios,
+    });
+  } catch (error) {
+    console.error("Error al obtener servicios del empleado:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Error al obtener servicios del empleado" });
+  }
 };
