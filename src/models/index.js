@@ -137,8 +137,8 @@ function nini(sequelize) {
 
   const modelsInitialized = nini(sequelize);
 
-  Agendamiento_Servicios.belongsTo(Agendamientos, { as: "Id_Agendamientos_Agendamiento", foreignKey: "Id_Agendamientos"});
-  Agendamientos.hasOne(Agendamiento_Servicios, { as: "Agendamiento_Servicio", foreignKey: "Id_Agendamientos"});
+  Agendamiento_Servicios.belongsTo(Agendamientos, { as: "Agendamiento", foreignKey: "Id_Agendamientos" });
+  Agendamientos.hasMany(Agendamiento_Servicios, { as: "Agendamiento_Servicios", foreignKey: "Id_Agendamientos" });
   Ventas.belongsTo(Agendamientos, { as: "Id_Agendamientos_Agendamiento", foreignKey: "Id_Agendamientos"});
   Agendamientos.hasOne(Ventas, { as: "Ventum", foreignKey: "Id_Agendamientos"});
   Insumos.belongsTo(Categoria_Insumos, { as: "Id_Categoria_Insumos_Categoria_Insumo", foreignKey: "Id_Categoria_Insumos"});
@@ -211,8 +211,8 @@ function nini(sequelize) {
   Roles.hasMany(Rol_Permiso, { as: "Rol_Permisos", foreignKey: "Rol_Id"});
   Usuarios.belongsTo(Roles, { as: "Rol", foreignKey: "Rol_Id"});
   Roles.hasMany(Usuarios, { as: "Usuarios", foreignKey: "Rol_Id"});
-  Agendamiento_Servicios.belongsTo(Servicios, { as: "Id_Servicios_Servicio", foreignKey: "Id_Servicios"});
-  Servicios.hasMany(Agendamiento_Servicios, { as: "Agendamiento_Servicios", foreignKey: "Id_Servicios"});
+  Agendamiento_Servicios.belongsTo(Servicios, { as: "Servicio", foreignKey: "Id_Servicios" });
+  Servicios.hasMany(Agendamiento_Servicios, { as: "Agendamiento_Servicios", foreignKey: "Id_Servicios" });
   Empleado_Servicio.belongsTo(Servicios, { as: "Id_Servicios_Servicio", foreignKey: "Id_Servicios"});
   Servicios.hasMany(Empleado_Servicio, { as: "Empleado_Servicios", foreignKey: "Id_Servicios"});
   Servicio_Imagen.belongsTo(Servicios, { as: "Id_Servicios_Servicio", foreignKey: "Id_Servicios"});

@@ -27,13 +27,23 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATEONLY,
       allowNull: false
     },
+    Hora_Inicio: {
+      type: DataTypes.TIME,
+      allowNull: false
+    },
+    Hora_Fin: {
+      type: DataTypes.TIME,
+      allowNull: true
+    },
+
     Subtotal: {
       type: DataTypes.DECIMAL(10,2),
       allowNull: false
     },
     Estado: {
       type: DataTypes.STRING(20),
-      allowNull: true
+      allowNull: true,
+      defaultValue: 'Agendado'
     }
   }, {
     sequelize,

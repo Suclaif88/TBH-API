@@ -7,7 +7,8 @@ const {
     actualizarEmpleado,
     eliminarEmpleado,
     cambiarEstadoEmpleado,
-    listarEmpleadoPorDocumento
+    listarEmpleadoPorDocumento,
+    obtenerServiciosDeEmpleado
 } = require('../controllers/empleados.controller.js');
 
 const verificarToken = require('../middleware/authMiddleware');
@@ -26,4 +27,7 @@ router.get('/:id', obtenerEmpleadoPorId);
 router.put('/:id', actualizarEmpleado);
 router.delete('/:id', eliminarEmpleado);
 router.put('/estado/:id', cambiarEstadoEmpleado);
+
+router.get("/:id/servicios", obtenerServiciosDeEmpleado);
+
 module.exports = router;
