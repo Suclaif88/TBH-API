@@ -9,6 +9,16 @@ exports.crearServicio = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
     const archivos = req.files || [];
+    let { empleados = "[]" } = req.body; // viene como string en form-data
+
+    // 🔹 Asegurar que empleados sea array
+    if (typeof empleados === "string") {
+      try {
+        empleados = JSON.parse(empleados);
+      } catch {
+        empleados = [];
+      }
+    }
 
     // 1. Crear servicio
     const nuevoServicio = await Servicios.create(req.body, { transaction });
@@ -20,13 +30,14 @@ exports.crearServicio = async (req, res) => {
       transaction
     );
 
-    // 3. Relacionar servicio con imágenes
-    const relaciones = imagenesSubidas.map((img) => ({
-      Id_Servicios,
-      Id_Imagenes: img.Id_Imagenes,
-    }));
-
-    await Servicio_Imagen.bulkCreate(relaciones, { transaction });
+    // 3. Relacionar empleados con el servicio
+    if (Array.isArray(empleados) && empleados.length > 0) {
+      const relacionesEmpleados = empleados.map((Id_Empleados) => ({
+        Id_Servicios,
+        Id_Empleados,
+      }));
+      await Empleado_Servicio.bulkCreate(relacionesEmpleados, { transaction });
+    }
 
     await transaction.commit();
 
@@ -34,6 +45,7 @@ exports.crearServicio = async (req, res) => {
       status: "success",
       data: nuevoServicio,
       imagenes: imagenesSubidas,
+      empleados,
     });
   } catch (err) {
     await transaction.rollback();
@@ -61,6 +73,7 @@ exports.obtenerServicios = async (req, res) => {
     res.status(500).json({ status: "error", message: err.message });
   }
 };
+
 
 // 📌 2. Obtener SOLO los servicios ACTIVOS (Landing)
 exports.obtenerServiciosActivos = async (req, res) => {
@@ -115,9 +128,12 @@ exports.obtenerServicioById = async (req, res) => {
 exports.actualizarServicio = async (req, res) => {
   try {
     const { id } = req.params;
+    const { empleados = [] } = req.body;
+
     const servicio = await Servicios.findOne({ where: { Id_Servicios: id } });
 
     if (!servicio) {
+
       return res
         .status(404)
         .json({ status: "error", message: "Servicio no encontrado" });
@@ -131,7 +147,6 @@ exports.actualizarServicio = async (req, res) => {
   }
 };
 
-// Eliminar servicio
 exports.eliminarServicio = async (req, res) => {
   try {
     const { id } = req.params;

@@ -21,8 +21,7 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'Agendamientos',
         key: 'Id_Agendamientos'
-      },
-      unique: "Agendamiento_Servicios_ibfk_2"
+      }
     },
     Precio: {
       type: DataTypes.DECIMAL(10,2),
