@@ -1,4 +1,4 @@
-const { Categoria_Productos, Productos, Tallas } = require('../models');
+const { Categoria_Productos, Productos, Tallas,Producto_Imagen,Imagenes} = require('../models');
 const { Op } = require('sequelize');
 
 exports.obtenerCategorias = async (req, res) => {
@@ -202,5 +202,81 @@ exports.obtenerCategoriasActivasPublicas = async (req, res) => {
     res.json({ status: 'success', data: categoriasActivas });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+exports.obtenerCategoriasActivasPublicas = async (req, res) => {
+  try {
+    const categoriasActivas = await Categoria_Productos.findAll({
+      where: {
+        Estado: true
+      },
+      attributes: ['Id_Categoria_Producto', 'Nombre', 'Descripcion', 'Es_Ropa']
+    });
+    res.json({ status: 'success', data: categoriasActivas });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+// 3. AGREGAR LA FUNCIÓN COMO PARTE DE exports (NO como función separada):
+exports.obtenerProductosPorCategoriaPublico = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Buscar productos activos de esta categoría
+    const productos = await Productos.findAll({
+      where: {
+        Id_Categoria_Producto: id,
+        Estado: true
+      },
+      include: [
+        {
+          model: Categoria_Productos,
+          as: "Id_Categoria_Producto_Categoria_Producto",
+          attributes: ['Nombre', 'Es_Ropa']
+        },
+        {
+          model: Producto_Imagen,
+          as: "Producto_Imagens",
+          include: [
+            {
+              model: Imagenes,
+              as: "Id_Imagenes_Imagene",
+              attributes: ['Id_Imagenes', 'URL']
+            }
+          ]
+        }
+      ],
+      order: [['Nombre', 'ASC']]
+    });
+
+    // Formatear la respuesta
+    const productosFormateados = productos.map(producto => ({
+      Id_Productos: producto.Id_Productos,
+      Nombre: producto.Nombre,
+      Descripcion: producto.Descripcion,
+      Precio_Venta: producto.Precio_Venta,
+      Precio_Compra: producto.Precio_Compra,
+      Stock: producto.Stock,
+      Categoria: producto.Id_Categoria_Producto_Categoria_Producto?.Nombre,
+      Es_Ropa: producto.Id_Categoria_Producto_Categoria_Producto?.Es_Ropa,
+      Imagenes: producto.Producto_Imagens?.map(pi => ({
+        Id_Imagenes: pi.Id_Imagenes_Imagene?.Id_Imagenes,
+        URL: pi.Id_Imagenes_Imagene?.URL
+      })) || []
+    }));
+
+    res.json({
+      success: true,
+      data: productosFormateados
+    });
+    
+  } catch (error) {
+    console.error('Error al obtener productos por categoría:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener productos',
+      error: error.message
+    });
   }
 };
