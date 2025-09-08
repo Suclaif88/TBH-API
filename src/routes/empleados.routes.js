@@ -2,6 +2,8 @@ const { Router } = require('express');
 const {
     crearEmpleado,
     obtenerEmpleadosActivos,
+    obtenerEmpleadosActivosPublico,
+    obtenerServiciosEmpleado,
     listarEmpleados, 
     obtenerEmpleadoPorId, 
     actualizarEmpleado,
@@ -16,6 +18,11 @@ const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
+// Rutas protegidas solo por token - no requieren verificación de roles
+router.get('/publico/activos', verificarToken, obtenerEmpleadosActivosPublico);
+router.get('/publico/:id/servicios', verificarToken, obtenerServiciosEmpleado);
+
+// Rutas protegidas - requieren autenticación y autorización
 router.use(verificarToken);
 router.use(autorizar('Empleados'));
 
