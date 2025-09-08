@@ -9,13 +9,15 @@ const {
   obtenerCategoriasNoRopa,
   eliminarCategoria,
   cambiarEstadoCategoria,
-  obtenerCategoriasActivasPublicas
+  obtenerCategoriasActivasPublicas,
+  obtenerProductosPorCategoriaPublico 
 } = require('../controllers/categoriaProducto.controller');
 const verificarToken = require('../middleware/authMiddleware');
 const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 router.get('/public/activas', obtenerCategoriasActivasPublicas);
+router.get('/public/:id/productos', obtenerProductosPorCategoriaPublico);
 
 router.use(verificarToken);
 router.use(autorizar('Categoria Productos'));
@@ -31,4 +33,6 @@ router.delete('/:id', eliminarCategoria);
 router.put('/estado/:id', cambiarEstadoCategoria);
 
 router.get('/activas', obtenerCategoriasActivas);
+
+
 module.exports = router;
