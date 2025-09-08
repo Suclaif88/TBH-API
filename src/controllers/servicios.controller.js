@@ -1,4 +1,4 @@
-const { Servicios, Imagenes, Servicio_Imagen } = require("../models");
+const { Servicios, Imagenes, Servicio_Imagen, Empleado_Servicio } = require("../models");
 const {
   subirImagenesDesdeArchivos,
 } = require("../controllers/imagenes.controller");
