@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const {
     crearAgendamientos,
+    crearAgendamientoPublico,
     obtenerAgendamientosPorFecha, // Nueva función para obtener por fecha
     obtenerAgendamientosPorId,
     eliminarAgendamientos
@@ -11,6 +12,10 @@ const autorizar = require('../middleware/checkPermission');
 
 const router = Router();
 
+// Ruta pública - solo requiere token de autenticación
+router.post('/publico', verificarToken, crearAgendamientoPublico);
+
+// Rutas protegidas - requieren autenticación y autorización
 router.use(verificarToken);
 router.use(autorizar('Agendamiento'));
 

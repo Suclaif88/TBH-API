@@ -96,16 +96,23 @@ exports.obtenerServiciosActivos = async (req, res) => {
   }
 };
 
-// Obtener servicio por ID
+// Obtener servicio por ID (para edición)
 exports.obtenerServicioById = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Buscar el servicio con todas sus relaciones
     const servicio = await Servicios.findByPk(id, {
       include: [
         {
           model: Imagenes,
           as: "Imagenes",
           through: { attributes: [] },
+        },
+        {
+          model: Empleado_Servicio,
+          as: "Empleado_Servicios",
+          attributes: ['Id_Empleados'],
         },
       ],
     });
@@ -116,8 +123,23 @@ exports.obtenerServicioById = async (req, res) => {
         .json({ status: "error", message: "Servicio no encontrado" });
     }
 
-    res.json({ status: "success", data: servicio });
+    // Extraer los IDs de empleados asociados
+    const empleadosAsociados = servicio.Empleado_Servicios 
+      ? servicio.Empleado_Servicios.map(rel => rel.Id_Empleados)
+      : [];
+
+    // Formatear la respuesta con toda la información necesaria para edición
+    const servicioCompleto = {
+      ...servicio.toJSON(),
+      empleados: empleadosAsociados
+    };
+
+    res.json({ 
+      status: "success", 
+      data: servicioCompleto 
+    });
   } catch (error) {
+    console.error("Error al obtener servicio por ID:", error);
     res
       .status(500)
       .json({ status: "error", message: "Error al obtener el servicio" });
@@ -126,23 +148,66 @@ exports.obtenerServicioById = async (req, res) => {
 
 // Actualizar servicio
 exports.actualizarServicio = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
     const { id } = req.params;
-    const { empleados = [] } = req.body;
+    let { empleados = [] } = req.body;
 
-    const servicio = await Servicios.findOne({ where: { Id_Servicios: id } });
+    // Asegurar que empleados sea array
+    if (typeof empleados === "string") {
+      try {
+        empleados = JSON.parse(empleados);
+      } catch {
+        empleados = [];
+      }
+    }
+
+    const servicio = await Servicios.findOne({ 
+      where: { Id_Servicios: id },
+      transaction 
+    });
 
     if (!servicio) {
-
+      await transaction.rollback();
       return res
         .status(404)
         .json({ status: "error", message: "Servicio no encontrado" });
     }
 
-    await servicio.update(req.body);
+    // Actualizar datos del servicio
+    await servicio.update(req.body, { transaction });
 
-    res.json({ status: "success", message: "Servicio actualizado" });
+    // Actualizar empleados asociados
+    if (Array.isArray(empleados)) {
+      // Eliminar relaciones existentes
+      await Empleado_Servicio.destroy({
+        where: { Id_Servicios: id },
+        transaction
+      });
+
+      // Crear nuevas relaciones
+      if (empleados.length > 0) {
+        const relacionesEmpleados = empleados.map((Id_Empleados) => ({
+          Id_Servicios: id,
+          Id_Empleados,
+        }));
+        await Empleado_Servicio.bulkCreate(relacionesEmpleados, { transaction });
+      }
+    }
+
+    await transaction.commit();
+
+    res.json({ 
+      status: "success", 
+      message: "Servicio actualizado correctamente",
+      data: {
+        Id_Servicios: servicio.Id_Servicios,
+        empleados: empleados
+      }
+    });
   } catch (err) {
+    await transaction.rollback();
+    console.error("Error al actualizar servicio:", err);
     res.status(500).json({ status: "error", message: err.message });
   }
 };
