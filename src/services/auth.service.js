@@ -45,7 +45,7 @@ exports.register = async (data) => {
         { expiresIn: "1h" }
       );
 
-       const link = `http://localhost:5173/activate/${token}`;  //Cambiar el link a produccion
+       const link = `https://tbh-opal.vercel.app/activate/${token}`;  //Cambiar el link a produccion
 
     // Enviar correo
     await sendMail(
@@ -178,7 +178,7 @@ exports.forgotPassword = async ({ Correo }) => {
     { expiresIn: "15m" }
   );
 
-  const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+  const resetLink = `https://tbh-opal.vercel.app/reset-password/${resetToken}`;
 
   await sendMail(
     usuario.Correo,
