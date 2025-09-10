@@ -35,24 +35,45 @@ const iniciarServidor = async () => {
 
     const allowedOrigins = [
       'http://localhost:5173',
-      'http://192.168.0.198:5173'
+      'http://192.168.0.198:5173',
+      'https://tbh-frontend.vercel.app',
+      'https://tbh-frontend-git-main.vercel.app',
+      'https://tbh-frontend-git-develop.vercel.app'
     ];
 
     app.use(cors({
       origin: function(origin, callback) {
+        // Permitir requests sin origin (mobile apps, postman, etc.)
         if (!origin) return callback(null, true);
 
-        if (
-          allowedOrigins.includes(origin) ||
-          origin.endsWith('.vercel.app')
-        ) {
+        // Permitir orígenes específicos
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        // Permitir subdominios de vercel
+        if (origin.endsWith('.vercel.app')) {
+          return callback(null, true);
+        }
+
+        // Permitir localhost en cualquier puerto para desarrollo
+        if (origin.startsWith('http://localhost:')) {
+          return callback(null, true);
+        }
+
+        // En producción, ser más permisivo con dominios HTTPS
+        if (process.env.NODE_ENV === 'production' && origin.startsWith('https://')) {
+          console.log(`Permitiendo origen en producción: ${origin}`);
           return callback(null, true);
         }
 
         const msg = `El CORS policy no permite el acceso desde el origen: ${origin}`;
+        console.warn(msg);
         return callback(new Error(msg), false);
       },
-      credentials: true
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie']
     }));
 
     app.use(limiter);
@@ -66,6 +87,19 @@ const iniciarServidor = async () => {
         version: APP_VERSION,
         autor: AUTOR,
         fecha: new Date().toISOString(),
+      });
+    });
+
+    // Endpoint de salud
+    app.get("/health", (req, res) => {
+      res.status(200).json({
+        status: "OK",
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || "development",
+        version: APP_VERSION,
+        author: AUTOR,
+        jwt_secret_configured: !!process.env.JWT_SECRET,
+        database_connected: true
       });
     });
 

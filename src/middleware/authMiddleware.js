@@ -5,6 +5,9 @@ const logger = require('../../logger');
 const authMiddleware = (req, res, next) => {
   const token = req.cookies?.token;
 
+  // Debug: Log de información de la request
+  logger.info(`Auth middleware - URL: ${req.originalUrl}, Method: ${req.method}, Origin: ${req.headers.origin}, Cookies: ${JSON.stringify(req.cookies)}`);
+
   if (!token) {
     if (req.originalUrl === "/api/me") {
       req.user = null;
@@ -17,6 +20,11 @@ const authMiddleware = (req, res, next) => {
   }
 
   try {
+    if (!process.env.JWT_SECRET) {
+      logger.error('JWT_SECRET no está configurado en las variables de entorno');
+      return res.status(500).json({ message: 'Error de configuración del servidor.' });
+    }
+    
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
 
