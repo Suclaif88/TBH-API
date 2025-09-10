@@ -7,6 +7,7 @@ const {
   actualizarServicio,
   cambiarEstadoServicio,
   eliminarServicio,
+  eliminarImagenServicio,
 } = require("../controllers/servicios.controller");
 
 const upload = require("../middleware/upload");
@@ -25,8 +26,9 @@ router.use(autorizar("Servicios"));
 router.post("/", upload.array("imagenes"), crearServicio);
 router.get("/", obtenerServicios);
 router.get("/:id", obtenerServicioById);
-router.put("/:id", actualizarServicio);
+router.put("/:id", upload.array("imagenes"), actualizarServicio);
 router.put("/estado/:id", cambiarEstadoServicio);
 router.delete("/:id", eliminarServicio);
+router.delete("/:id/imagenes/:imagenId", eliminarImagenServicio);
 
 module.exports = router;

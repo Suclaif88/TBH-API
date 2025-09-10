@@ -30,7 +30,16 @@ exports.crearServicio = async (req, res) => {
       transaction
     );
 
-    // 3. Relacionar empleados con el servicio
+    // 3. Relacionar imágenes con el servicio
+    if (imagenesSubidas && imagenesSubidas.length > 0) {
+      const relacionesImagenes = imagenesSubidas.map((imagen) => ({
+        Id_Servicios,
+        Id_Imagenes: imagen.Id_Imagenes,
+      }));
+      await Servicio_Imagen.bulkCreate(relacionesImagenes, { transaction });
+    }
+
+    // 4. Relacionar empleados con el servicio
     if (Array.isArray(empleados) && empleados.length > 0) {
       const relacionesEmpleados = empleados.map((Id_Empleados) => ({
         Id_Servicios,
@@ -151,6 +160,7 @@ exports.actualizarServicio = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
     const { id } = req.params;
+    const archivos = req.files || [];
     let { empleados = [] } = req.body;
 
     // Asegurar que empleados sea array
@@ -177,6 +187,61 @@ exports.actualizarServicio = async (req, res) => {
     // Actualizar datos del servicio
     await servicio.update(req.body, { transaction });
 
+    // Manejar imágenes: eliminar las anteriores y agregar las nuevas
+    let imagenesSubidas = [];
+    if (archivos && archivos.length > 0) {
+      // 1. Obtener las imágenes actuales del servicio
+      const servicioConImagenes = await Servicios.findByPk(id, {
+        include: [
+          {
+            model: Imagenes,
+            as: "Imagenes",
+            through: { attributes: [] },
+          },
+        ],
+        transaction
+      });
+
+      // 2. Eliminar las imágenes anteriores de Cloudinary y la base de datos
+      if (servicioConImagenes && servicioConImagenes.Imagenes && servicioConImagenes.Imagenes.length > 0) {
+        const cloudinary = require("../config/cloudinaryConfig");
+        
+        for (const imagen of servicioConImagenes.Imagenes) {
+          try {
+            const urlParts = imagen.URL.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+            const publicId = `imagenes/${fileName.split('.')[0]}`;
+            
+            await cloudinary.uploader.destroy(publicId);
+            await imagen.destroy({ transaction });
+          } catch (error) {
+            console.error("Error al eliminar imagen anterior de Cloudinary:", error);
+          }
+        }
+      }
+
+      // 3. Eliminar todas las relaciones de imágenes existentes
+      await Servicio_Imagen.destroy({
+        where: { Id_Servicios: id },
+        transaction
+      });
+
+      // 4. Subir las nuevas imágenes
+      imagenesSubidas = await subirImagenesDesdeArchivos(
+        archivos,
+        transaction
+      );
+
+      // 5. Relacionar las nuevas imágenes con el servicio
+      if (imagenesSubidas && imagenesSubidas.length > 0) {
+        const relacionesImagenes = imagenesSubidas.map((imagen) => ({
+          Id_Servicios: id,
+          Id_Imagenes: imagen.Id_Imagenes,
+        }));
+        await Servicio_Imagen.bulkCreate(relacionesImagenes, { transaction });
+      }
+    }
+
     // Actualizar empleados asociados
     if (Array.isArray(empleados)) {
       // Eliminar relaciones existentes
@@ -202,7 +267,8 @@ exports.actualizarServicio = async (req, res) => {
       message: "Servicio actualizado correctamente",
       data: {
         Id_Servicios: servicio.Id_Servicios,
-        empleados: empleados
+        empleados: empleados,
+        imagenes: imagenesSubidas
       }
     });
   } catch (err) {
@@ -213,20 +279,140 @@ exports.actualizarServicio = async (req, res) => {
 };
 
 exports.eliminarServicio = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
     const { id } = req.params;
-    const servicio = await Servicios.findOne({ where: { Id_Servicios: id } });
+    const servicio = await Servicios.findOne({ 
+      where: { Id_Servicios: id },
+      include: [
+        {
+          model: Imagenes,
+          as: "Imagenes",
+          through: { attributes: [] },
+        },
+      ],
+      transaction 
+    });
 
     if (!servicio) {
+      await transaction.rollback();
       return res
         .status(404)
         .json({ status: "error", message: "Servicio no encontrado" });
     }
 
-    await servicio.destroy();
+    // Eliminar relaciones de empleados
+    await Empleado_Servicio.destroy({
+      where: { Id_Servicios: id },
+      transaction
+    });
 
-    res.json({ status: "success", message: "Servicio eliminado" });
+    // Eliminar relaciones de imágenes
+    await Servicio_Imagen.destroy({
+      where: { Id_Servicios: id },
+      transaction
+    });
+
+    // Eliminar las imágenes de Cloudinary y de la base de datos
+    if (servicio.Imagenes && servicio.Imagenes.length > 0) {
+      const cloudinary = require("../config/cloudinaryConfig");
+      
+      for (const imagen of servicio.Imagenes) {
+        try {
+          const urlParts = imagen.URL.split('/');
+          const fileName = urlParts[urlParts.length - 1];
+          const publicId = `imagenes/${fileName.split('.')[0]}`;
+          
+          await cloudinary.uploader.destroy(publicId);
+          await imagen.destroy({ transaction });
+        } catch (error) {
+          console.error("Error al eliminar imagen de Cloudinary:", error);
+        }
+      }
+    }
+
+    // Eliminar el servicio
+    await servicio.destroy({ transaction });
+
+    await transaction.commit();
+
+    res.json({ status: "success", message: "Servicio eliminado correctamente" });
   } catch (err) {
+    await transaction.rollback();
+    console.error("Error al eliminar servicio:", err);
+    res.status(500).json({ status: "error", message: err.message });
+  }
+};
+
+// Eliminar imagen específica de un servicio
+exports.eliminarImagenServicio = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const { id, imagenId } = req.params;
+
+    // Verificar que el servicio existe
+    const servicio = await Servicios.findByPk(id, { transaction });
+    if (!servicio) {
+      await transaction.rollback();
+      return res
+        .status(404)
+        .json({ status: "error", message: "Servicio no encontrado" });
+    }
+
+    // Verificar que la imagen existe y está relacionada con el servicio
+    const relacionImagen = await Servicio_Imagen.findOne({
+      where: { 
+        Id_Servicios: id, 
+        Id_Imagenes: imagenId 
+      },
+      transaction
+    });
+
+    if (!relacionImagen) {
+      await transaction.rollback();
+      return res
+        .status(404)
+        .json({ status: "error", message: "Imagen no encontrada en este servicio" });
+    }
+
+    // Obtener la imagen para eliminar de Cloudinary
+    const imagen = await Imagenes.findByPk(imagenId, { transaction });
+    if (imagen) {
+      try {
+        const cloudinary = require("../config/cloudinaryConfig");
+        const urlParts = imagen.URL.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const publicId = `imagenes/${fileName.split('.')[0]}`;
+        
+        await cloudinary.uploader.destroy(publicId);
+      } catch (error) {
+        console.error("Error al eliminar imagen de Cloudinary:", error);
+      }
+    }
+
+    // Eliminar la relación
+    await Servicio_Imagen.destroy({
+      where: { 
+        Id_Servicios: id, 
+        Id_Imagenes: imagenId 
+      },
+      transaction
+    });
+
+    // Eliminar la imagen de la base de datos
+    if (imagen) {
+      await imagen.destroy({ transaction });
+    }
+
+    await transaction.commit();
+
+    res.json({ 
+      status: "success", 
+      message: "Imagen eliminada correctamente del servicio" 
+    });
+  } catch (err) {
+    await transaction.rollback();
+    console.error("Error al eliminar imagen del servicio:", err);
     res.status(500).json({ status: "error", message: err.message });
   }
 };
