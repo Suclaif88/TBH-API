@@ -1,7 +1,7 @@
 {
   "build": {
     "type": "nodejs",
-    "buildCommand": "npm install"
+    "buildCommand": "npm ci"
   },
   "deploy": {
     "startCommand": "node server.js"
