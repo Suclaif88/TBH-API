@@ -29,8 +29,8 @@ variable "JWT_SECRET" {
   sensitive   = true
 }
 
-variable "DATABASE_URL" {
-  description = "URL de conexión a la base de datos"
+variable "MYSQL_ADDON_URI" {
+  description = "URL de conexión a la base de datos MySQL"
   type        = string
   sensitive   = true
 }

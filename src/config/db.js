@@ -1,7 +1,7 @@
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.MYSQL_ADDON_URI;
 
 const sequelize = new Sequelize(databaseUrl, {
   dialect: "mysql",

@@ -52,11 +52,11 @@ resource "railway_variable" "JWT_SECRET" {
   value          = var.JWT_SECRET
 }
 
-resource "railway_variable" "DATABASE_URL" {
+resource "railway_variable" "MYSQL_ADDON_URI" {
   service_id     = var.SERVICE_ID
   environment_id = var.ENVIRONMENT_ID
-  name           = "DATABASE_URL"
-  value          = var.DATABASE_URL
+  name           = "MYSQL_ADDON_URI"
+  value          = var.MYSQL_ADDON_URI
 }
 
 resource "railway_variable" "CLOUDINARY_CLOUD_NAME" {
