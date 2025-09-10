@@ -45,7 +45,7 @@ exports.register = async (data) => {
         { expiresIn: "1h" }
       );
 
-       const link = `http://localhost:3000/api/auth/activate/${token}`;  //Cambiar el link a produccion
+       const link = `http://localhost:5173/activate/${token}`;  //Cambiar el link a produccion
 
     // Enviar correo
     await sendMail(
