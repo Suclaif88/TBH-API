@@ -33,47 +33,14 @@ const iniciarServidor = async () => {
 
     app.set('trust proxy', 1);
 
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://192.168.0.198:5173',
-      'https://tbh-frontend.vercel.app',
-      'https://tbh-frontend-git-main.vercel.app',
-      'https://tbh-frontend-git-develop.vercel.app'
-    ];
-
+    // Configuración de CORS más permisiva
     app.use(cors({
-      origin: function(origin, callback) {
-        // Permitir requests sin origin (mobile apps, postman, etc.)
-        if (!origin) return callback(null, true);
-
-        // Permitir orígenes específicos
-        if (allowedOrigins.includes(origin)) {
-          return callback(null, true);
-        }
-
-        // Permitir subdominios de vercel
-        if (origin.endsWith('.vercel.app')) {
-          return callback(null, true);
-        }
-
-        // Permitir localhost en cualquier puerto para desarrollo
-        if (origin.startsWith('http://localhost:')) {
-          return callback(null, true);
-        }
-
-        // En producción, ser más permisivo con dominios HTTPS
-        if (process.env.NODE_ENV === 'production' && origin.startsWith('https://')) {
-          console.log(`Permitiendo origen en producción: ${origin}`);
-          return callback(null, true);
-        }
-
-        const msg = `El CORS policy no permite el acceso desde el origen: ${origin}`;
-        console.warn(msg);
-        return callback(new Error(msg), false);
-      },
+      origin: true, // Permitir todos los orígenes
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie']
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'X-Requested-With'],
+      exposedHeaders: ['Set-Cookie'],
+      optionsSuccessStatus: 200 // Para compatibilidad con navegadores legacy
     }));
 
     app.use(limiter);
