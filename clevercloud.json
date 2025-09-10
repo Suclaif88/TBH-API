@@ -1,0 +1,15 @@
+{
+  "build": {
+    "type": "nodejs",
+    "buildCommand": "npm install"
+  },
+  "deploy": {
+    "startCommand": "node server.js"
+  },
+  "addons": [
+    {
+      "id": "mysql-addon",
+      "plan": "dev"
+    }
+  ]
+}

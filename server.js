@@ -1,5 +1,5 @@
-const { conectarBD } = require("./src/config/db");
 require("dotenv").config();
+const { conectarBD } = require("./src/config/db");
 const express = require("express");
 const { limiter } = require('./src/middleware/rateLimiters');
 const cors = require("cors");
