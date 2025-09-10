@@ -65,11 +65,15 @@ exports.login = async (req, res) => {
     const response = await authService.login({ Documento, Correo, Password });
 
     if (response.status === 200 && response.data?.token) {
+      // Configuración de cookies para producción
+      const isProduction = process.env.NODE_ENV === 'production';
+      
       res.cookie("token", response.data.token, {
         httpOnly: true,
-        secure: false, // Cambiar a true en producción
-        sameSite: 'Lax',
-        maxAge: 60 * 60 * 1000 
+        secure: isProduction, // true en producción, false en desarrollo
+        sameSite: isProduction ? 'None' : 'Lax', // None para producción con HTTPS
+        maxAge: 60 * 60 * 1000, // 1 hora
+        domain: isProduction ? undefined : undefined // Dejar que el navegador maneje el dominio
       });
 
       return res.status(200).json({
