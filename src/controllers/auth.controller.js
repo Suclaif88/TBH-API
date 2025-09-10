@@ -1,3 +1,5 @@
+const { Usuarios,
+} = require('../models');
 const authService = require('../services/auth.service');
 
 exports.register = async (req, res) => {
@@ -42,7 +44,6 @@ exports.register = async (req, res) => {
   }
 };
 
-
 exports.login = async (req, res) => {
   const { Documento, Correo, Password } = req.body;
 
@@ -86,6 +87,52 @@ exports.login = async (req, res) => {
     return res.status(401).json({
       status: 'error',
       message: 'Error de autenticación',
+      error: error.message
+    });
+  }
+};
+
+exports.activate = async (req, res) => {
+  const { token } = req.params;
+  try {
+    const response = await authService.activate(token);
+
+    return res.status(response.status).json({
+      status: "success",
+      message: response.message,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const response = await authService.forgotPassword(req.body);
+    return res.status(200).json({ status: "success", message: response.message });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Error en forgotPassword",
+      error: error.message
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { nuevaPassword } = req.body;
+
+    const response = await authService.resetPassword(token, nuevaPassword);
+    return res.status(200).json({ status: "success", message: response.message });
+  } catch (error) {
+    return res.status(400).json({
+      status: "error",
+      message: "Error en resetPassword",
       error: error.message
     });
   }
