@@ -1,10 +1,12 @@
 'use strict';
 
+const { DataTypes } = require('sequelize');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface) {
     await queryInterface.addColumn('Detalle_Venta', 'Id_Servicios', {
-      type: Sequelize.INTEGER,
+      type: DataTypes.INTEGER,
       allowNull: true,
     });
 
@@ -21,7 +23,7 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     await queryInterface.removeConstraint('Detalle_Venta', 'fk_detalleventa_servicio');
     await queryInterface.removeColumn('Detalle_Venta', 'Id_Servicios');
   }
