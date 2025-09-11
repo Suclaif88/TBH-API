@@ -1,7 +1,7 @@
+// controllers/servicios.controller.js
+const { Sequelize } = require("sequelize");
 const { Servicios, Imagenes, Servicio_Imagen, Empleado_Servicio } = require("../models");
-const {
-  subirImagenesDesdeArchivos,
-} = require("../controllers/imagenes.controller");
+const { subirImagenesDesdeArchivos } = require("../controllers/imagenes.controller");
 const { sequelize } = require("../config/db");
 
 // Crear servicio
@@ -25,10 +25,7 @@ exports.crearServicio = async (req, res) => {
     const Id_Servicios = nuevoServicio.Id_Servicios;
 
     // 2. Subir imágenes
-    const imagenesSubidas = await subirImagenesDesdeArchivos(
-      archivos,
-      transaction
-    );
+    const imagenesSubidas = await subirImagenesDesdeArchivos(archivos, transaction);
 
     // 3. Relacionar imágenes con el servicio
     if (imagenesSubidas && imagenesSubidas.length > 0) {
@@ -83,7 +80,6 @@ exports.obtenerServicios = async (req, res) => {
   }
 };
 
-
 // 📌 2. Obtener SOLO los servicios ACTIVOS (Landing)
 exports.obtenerServiciosActivos = async (req, res) => {
   try {
@@ -109,7 +105,7 @@ exports.obtenerServiciosActivos = async (req, res) => {
 exports.obtenerServicioById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Buscar el servicio con todas sus relaciones
     const servicio = await Servicios.findByPk(id, {
       include: [
@@ -121,44 +117,41 @@ exports.obtenerServicioById = async (req, res) => {
         {
           model: Empleado_Servicio,
           as: "Empleado_Servicios",
-          attributes: ['Id_Empleados'],
+          attributes: ["Id_Empleados"],
         },
       ],
     });
 
     if (!servicio) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "Servicio no encontrado" });
+      return res.status(404).json({ status: "error", message: "Servicio no encontrado" });
     }
 
     // Extraer los IDs de empleados asociados
-    const empleadosAsociados = servicio.Empleado_Servicios 
-      ? servicio.Empleado_Servicios.map(rel => rel.Id_Empleados)
+    const empleadosAsociados = servicio.Empleado_Servicios
+      ? servicio.Empleado_Servicios.map((rel) => rel.Id_Empleados)
       : [];
 
     // Formatear la respuesta con toda la información necesaria para edición
     const servicioCompleto = {
       ...servicio.toJSON(),
-      empleados: empleadosAsociados
+      empleados: empleadosAsociados,
     };
 
-    res.json({ 
-      status: "success", 
-      data: servicioCompleto 
+    res.json({
+      status: "success",
+      data: servicioCompleto,
     });
   } catch (error) {
     console.error("Error al obtener servicio por ID:", error);
-    res
-      .status(500)
-      .json({ status: "error", message: "Error al obtener el servicio" });
+    res.status(500).json({ status: "error", message: "Error al obtener el servicio" });
   }
 };
 
 // Actualizar servicio
 exports.actualizarServicio = async (req, res) => {
-  const transaction = await sequelize.transaction();
+  let transaction;
   try {
+    transaction = await sequelize.transaction();
     const { id } = req.params;
     const archivos = req.files || [];
     let { empleados = [] } = req.body;
@@ -172,16 +165,14 @@ exports.actualizarServicio = async (req, res) => {
       }
     }
 
-    const servicio = await Servicios.findOne({ 
+    const servicio = await Servicios.findOne({
       where: { Id_Servicios: id },
-      transaction 
+      transaction,
     });
 
     if (!servicio) {
       await transaction.rollback();
-      return res
-        .status(404)
-        .json({ status: "error", message: "Servicio no encontrado" });
+      return res.status(404).json({ status: "error", message: "Servicio no encontrado" });
     }
 
     // Actualizar datos del servicio
@@ -199,19 +190,19 @@ exports.actualizarServicio = async (req, res) => {
             through: { attributes: [] },
           },
         ],
-        transaction
+        transaction,
       });
 
       // 2. Eliminar las imágenes anteriores de Cloudinary y la base de datos
       if (servicioConImagenes && servicioConImagenes.Imagenes && servicioConImagenes.Imagenes.length > 0) {
         const cloudinary = require("../config/cloudinaryConfig");
-        
+
         for (const imagen of servicioConImagenes.Imagenes) {
           try {
-            const urlParts = imagen.URL.split('/');
+            const urlParts = imagen.URL.split("/");
             const fileName = urlParts[urlParts.length - 1];
-            const publicId = `imagenes/${fileName.split('.')[0]}`;
-            
+            const publicId = `imagenes/${fileName.split(".")[0]}`;
+
             await cloudinary.uploader.destroy(publicId);
             await imagen.destroy({ transaction });
           } catch (error) {
@@ -223,14 +214,11 @@ exports.actualizarServicio = async (req, res) => {
       // 3. Eliminar todas las relaciones de imágenes existentes
       await Servicio_Imagen.destroy({
         where: { Id_Servicios: id },
-        transaction
+        transaction,
       });
 
       // 4. Subir las nuevas imágenes
-      imagenesSubidas = await subirImagenesDesdeArchivos(
-        archivos,
-        transaction
-      );
+      imagenesSubidas = await subirImagenesDesdeArchivos(archivos, transaction);
 
       // 5. Relacionar las nuevas imágenes con el servicio
       if (imagenesSubidas && imagenesSubidas.length > 0) {
@@ -247,7 +235,7 @@ exports.actualizarServicio = async (req, res) => {
       // Eliminar relaciones existentes
       await Empleado_Servicio.destroy({
         where: { Id_Servicios: id },
-        transaction
+        transaction,
       });
 
       // Crear nuevas relaciones
@@ -262,27 +250,40 @@ exports.actualizarServicio = async (req, res) => {
 
     await transaction.commit();
 
-    res.json({ 
-      status: "success", 
+    res.json({
+      status: "success",
       message: "Servicio actualizado correctamente",
       data: {
         Id_Servicios: servicio.Id_Servicios,
         empleados: empleados,
-        imagenes: imagenesSubidas
-      }
+        imagenes: imagenesSubidas,
+      },
     });
   } catch (err) {
-    await transaction.rollback();
+    try {
+      if (transaction) await transaction.rollback();
+    } catch (rbErr) {
+      console.error("Error en rollback (actualizarServicio):", rbErr);
+    }
     console.error("Error al actualizar servicio:", err);
     res.status(500).json({ status: "error", message: err.message });
   }
 };
 
+// ---------- CORRECCIÓN PRINCIPAL: eliminarServicio ----------
 exports.eliminarServicio = async (req, res) => {
-  const transaction = await sequelize.transaction();
+  let transaction;
   try {
+    transaction = await sequelize.transaction();
     const { id } = req.params;
-    const servicio = await Servicios.findOne({ 
+
+    // Validación básica del id
+    if (!id || isNaN(Number(id))) {
+      if (transaction) await transaction.rollback();
+      return res.status(400).json({ status: "error", message: "Id inválido" });
+    }
+
+    const servicio = await Servicios.findOne({
       where: { Id_Servicios: id },
       include: [
         {
@@ -291,88 +292,107 @@ exports.eliminarServicio = async (req, res) => {
           through: { attributes: [] },
         },
       ],
-      transaction 
+      transaction,
     });
 
     if (!servicio) {
-      await transaction.rollback();
-      return res
-        .status(404)
-        .json({ status: "error", message: "Servicio no encontrado" });
+      if (transaction) await transaction.rollback();
+      return res.status(404).json({ status: "error", message: "Servicio no encontrado" });
     }
 
     // Eliminar relaciones de empleados
     await Empleado_Servicio.destroy({
       where: { Id_Servicios: id },
-      transaction
+      transaction,
     });
 
-    // Eliminar relaciones de imágenes
+    // Eliminar relaciones de imágenes (tabla intermedia)
     await Servicio_Imagen.destroy({
       where: { Id_Servicios: id },
-      transaction
+      transaction,
     });
 
-    // Eliminar las imágenes de Cloudinary y de la base de datos
+    // Eliminar las imágenes de Cloudinary y de la base de datos (no aborta si Cloudinary falla)
     if (servicio.Imagenes && servicio.Imagenes.length > 0) {
       const cloudinary = require("../config/cloudinaryConfig");
-      
+
       for (const imagen of servicio.Imagenes) {
         try {
-          const urlParts = imagen.URL.split('/');
+          const urlParts = imagen.URL.split("/");
           const fileName = urlParts[urlParts.length - 1];
-          const publicId = `imagenes/${fileName.split('.')[0]}`;
-          
+          const publicId = `imagenes/${fileName.split(".")[0]}`;
+
           await cloudinary.uploader.destroy(publicId);
           await imagen.destroy({ transaction });
         } catch (error) {
-          console.error("Error al eliminar imagen de Cloudinary:", error);
+          console.error("Warning: fallo eliminando imagen en Cloudinary o DB (seguimos):", error);
         }
       }
     }
 
-    // Eliminar el servicio
+    // Intentar eliminar el servicio (aquí puede saltar FK constraint)
     await servicio.destroy({ transaction });
 
     await transaction.commit();
-
-    res.json({ status: "success", message: "Servicio eliminado correctamente" });
+    return res.json({ status: "success", message: "Servicio eliminado correctamente" });
   } catch (err) {
-    await transaction.rollback();
-    console.error("Error al eliminar servicio:", err);
-    res.status(500).json({ status: "error", message: err.message });
+    // Rollback seguro
+    try {
+      if (transaction) await transaction.rollback();
+    } catch (rbErr) {
+      console.error("Error en rollback (eliminarServicio):", rbErr);
+    }
+
+    console.error("Error al eliminar servicio (stack):", err.stack || err);
+
+    // Manejo específico para errores de FK
+    if (err instanceof Sequelize.ForeignKeyConstraintError) {
+      return res.status(409).json({
+        status: "error",
+        message: "No se puede eliminar el servicio: existen registros relacionados en otras tablas.",
+        detail: err.parent?.detail || null,
+        sql: err.sql || null,
+      });
+    }
+
+    if (err instanceof Sequelize.DatabaseError) {
+      return res.status(500).json({
+        status: "error",
+        message: "Error de base de datos al eliminar servicio.",
+        detail: err.parent?.detail || err.message,
+      });
+    }
+
+    return res.status(500).json({ status: "error", message: err.message || "Error interno del servidor" });
   }
 };
+// -----------------------------------------------------------
 
-// Eliminar imagen específica de un servicio
 exports.eliminarImagenServicio = async (req, res) => {
-  const transaction = await sequelize.transaction();
+  let transaction;
   try {
+    transaction = await sequelize.transaction();
     const { id, imagenId } = req.params;
 
     // Verificar que el servicio existe
     const servicio = await Servicios.findByPk(id, { transaction });
     if (!servicio) {
-      await transaction.rollback();
-      return res
-        .status(404)
-        .json({ status: "error", message: "Servicio no encontrado" });
+      if (transaction) await transaction.rollback();
+      return res.status(404).json({ status: "error", message: "Servicio no encontrado" });
     }
 
     // Verificar que la imagen existe y está relacionada con el servicio
     const relacionImagen = await Servicio_Imagen.findOne({
-      where: { 
-        Id_Servicios: id, 
-        Id_Imagenes: imagenId 
+      where: {
+        Id_Servicios: id,
+        Id_Imagenes: imagenId,
       },
-      transaction
+      transaction,
     });
 
     if (!relacionImagen) {
-      await transaction.rollback();
-      return res
-        .status(404)
-        .json({ status: "error", message: "Imagen no encontrada en este servicio" });
+      if (transaction) await transaction.rollback();
+      return res.status(404).json({ status: "error", message: "Imagen no encontrada en este servicio" });
     }
 
     // Obtener la imagen para eliminar de Cloudinary
@@ -380,10 +400,10 @@ exports.eliminarImagenServicio = async (req, res) => {
     if (imagen) {
       try {
         const cloudinary = require("../config/cloudinaryConfig");
-        const urlParts = imagen.URL.split('/');
+        const urlParts = imagen.URL.split("/");
         const fileName = urlParts[urlParts.length - 1];
-        const publicId = `imagenes/${fileName.split('.')[0]}`;
-        
+        const publicId = `imagenes/${fileName.split(".")[0]}`;
+
         await cloudinary.uploader.destroy(publicId);
       } catch (error) {
         console.error("Error al eliminar imagen de Cloudinary:", error);
@@ -392,11 +412,11 @@ exports.eliminarImagenServicio = async (req, res) => {
 
     // Eliminar la relación
     await Servicio_Imagen.destroy({
-      where: { 
-        Id_Servicios: id, 
-        Id_Imagenes: imagenId 
+      where: {
+        Id_Servicios: id,
+        Id_Imagenes: imagenId,
       },
-      transaction
+      transaction,
     });
 
     // Eliminar la imagen de la base de datos
@@ -406,12 +426,16 @@ exports.eliminarImagenServicio = async (req, res) => {
 
     await transaction.commit();
 
-    res.json({ 
-      status: "success", 
-      message: "Imagen eliminada correctamente del servicio" 
+    res.json({
+      status: "success",
+      message: "Imagen eliminada correctamente del servicio",
     });
   } catch (err) {
-    await transaction.rollback();
+    try {
+      if (transaction) await transaction.rollback();
+    } catch (rbErr) {
+      console.error("Error en rollback (eliminarImagenServicio):", rbErr);
+    }
     console.error("Error al eliminar imagen del servicio:", err);
     res.status(500).json({ status: "error", message: err.message });
   }
@@ -424,9 +448,7 @@ exports.cambiarEstadoServicio = async (req, res) => {
 
     const servicio = await Servicios.findByPk(id);
     if (!servicio) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "Servicio no encontrado" });
+      return res.status(404).json({ status: "error", message: "Servicio no encontrado" });
     }
 
     servicio.Estado = !servicio.Estado;
@@ -434,12 +456,11 @@ exports.cambiarEstadoServicio = async (req, res) => {
 
     res.json({
       status: "success",
-      mensaje: `Servicio ${
-        servicio.Estado ? "activado" : "desactivado"
-      } correctamente`,
+      mensaje: `Servicio ${servicio.Estado ? "activado" : "desactivado"} correctamente`,
       data: servicio,
     });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
   }
 };
+  
