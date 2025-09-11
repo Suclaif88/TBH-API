@@ -2,10 +2,10 @@ const { Router } = require('express');
 const {
     crearAgendamientos,
     crearAgendamientoPublico,
-    obtenerAgendamientosPorFecha, // Nueva función para obtener por fecha
+    obtenerAgendamientosPorFecha,
     obtenerAgendamientosPorId,
+    actualizarAgendamientos,
     eliminarAgendamientos
-    // Las otras funciones también pueden ir aquí
 } = require('../controllers/agendamiento.controller');
 const verificarToken = require('../middleware/authMiddleware');
 const autorizar = require('../middleware/checkPermission');
@@ -19,14 +19,11 @@ router.post('/publico', verificarToken, crearAgendamientoPublico);
 router.use(verificarToken);
 router.use(autorizar('Agendamiento'));
 
-// Ruta para crear un agendamiento (POST)
+// CRUD
 router.post('/', crearAgendamientos);
-
-// Nueva ruta para obtener agendamientos por fecha
 router.get('/fecha/:fecha', obtenerAgendamientosPorFecha);
-
-// ... otras rutas (obtener por ID, eliminar, etc.)
 router.get('/:id', obtenerAgendamientosPorId);
+router.put('/:id', actualizarAgendamientos);
 router.delete('/:id', eliminarAgendamientos);
 
 module.exports = router;

@@ -1,10 +1,13 @@
-// controllers/agendamiento.controller.js - CORREGIDO con validación de novedades
+// controllers/agendamiento.controller.js - COMPLETO (incluye actualizarAgendamientos)
+const { Sequelize } = require('sequelize');
 const { Agendamientos, Agendamiento_Servicios, Servicios, Empleados, Clientes, Novedades_Horarios, Empleado_Servicio } = require('../models');
 const { sequelize } = require("../config/db");
 const { Op } = require('sequelize');
 const { addMinutes } = require('../utils/timeHelpers');
 
-// Función para crear agendamientos con múltiples servicios
+/**
+ * Crear agendamientos (interno/admin) con múltiples servicios
+ */
 exports.crearAgendamientos = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -17,8 +20,7 @@ exports.crearAgendamientos = async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Debes enviar al menos un servicio' });
     }
 
-    // 1) Obtener datos reales de servicios desde DB (duracion y precio)
-    const idsServicios = serviciosAgendados.map(s => s.Id_Servicios);
+    const idsServicios = serviciosAgendados.map(s => s.Id_Servicios || s.Id_Servicio);
     const serviciosDB = await Servicios.findAll({
       where: { Id_Servicios: idsServicios },
       transaction: t
@@ -29,7 +31,6 @@ exports.crearAgendamientos = async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Uno o más servicios no existen' });
     }
 
-    // 2) Calcular duración total (en minutos) y subtotal (precio)
     let totalDuration = 0;
     let subtotal = 0;
     const itemsToInsert = serviciosDB.map(s => {
@@ -42,10 +43,8 @@ exports.crearAgendamientos = async (req, res) => {
       };
     });
 
-    // 3) Calcular hora fin
-    const Hora_Fin = addMinutes(Fecha, Hora_Inicio, totalDuration); // devuelve 'HH:MM:SS'
+    const Hora_Fin = addMinutes(Fecha, Hora_Inicio, totalDuration);
 
-    // 4) Validar solapamientos con agendamientos existentes
     const conflicto = await Agendamientos.findOne({
       where: {
         Id_Empleados,
@@ -72,7 +71,6 @@ exports.crearAgendamientos = async (req, res) => {
       });
     }
 
-    // 5) Validar solapamientos con novedades del empleado
     const novedad = await Novedades_Horarios.findOne({
       where: {
         Id_Empleados,
@@ -100,7 +98,6 @@ exports.crearAgendamientos = async (req, res) => {
       });
     }
 
-    // 6) Crear agendamiento
     const nuevoAgendamiento = await Agendamientos.create({
       Id_Cliente,
       Id_Empleados,
@@ -110,7 +107,6 @@ exports.crearAgendamientos = async (req, res) => {
       Subtotal: subtotal,
     }, { transaction: t });
 
-    // 7) Insertar registros en la tabla relación
     for (const item of itemsToInsert) {
       await Agendamiento_Servicios.create({
         Id_Agendamientos: nuevoAgendamiento.Id_Agendamientos,
@@ -121,7 +117,6 @@ exports.crearAgendamientos = async (req, res) => {
 
     await t.commit();
 
-    // 8) Respuesta estructurada
     const respuesta = {
       Id_Agendamientos: nuevoAgendamiento.Id_Agendamientos,
       Fecha: nuevoAgendamiento.Fecha,
@@ -139,12 +134,14 @@ exports.crearAgendamientos = async (req, res) => {
     return res.status(201).json({ status: 'success', data: respuesta });
   } catch (err) {
     await t.rollback();
+    console.error('Error creando agendamiento (crearAgendamientos):', err);
     return res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
-
-// Función para obtener agendamientos por fecha
+/**
+ * Obtener agendamientos por fecha
+ */
 exports.obtenerAgendamientosPorFecha = async (req, res) => {
   try {
     const { fecha } = req.params;
@@ -164,7 +161,7 @@ exports.obtenerAgendamientosPorFecha = async (req, res) => {
         },
         {
           model: Agendamiento_Servicios,
-          as: "Agendamiento_Servicios", // 👈 ahora plural
+          as: "Agendamiento_Servicios",
           include: [
             {
               model: Servicios,
@@ -176,12 +173,11 @@ exports.obtenerAgendamientosPorFecha = async (req, res) => {
       ]
     });
 
-    // 🔹 Transformar la data para que quede limpia
     const agendamientos = agendamientosDB.map(a => ({
       Id_Agendamientos: a.Id_Agendamientos,
       Fecha: a.Fecha,
       Hora_Inicio: a.Hora_Inicio,
-      Hora_Fin: a.Hora_Fin,   
+      Hora_Fin: a.Hora_Fin,
       Estado: a.Estado,
       Subtotal: a.Subtotal,
       Cliente: {
@@ -198,55 +194,280 @@ exports.obtenerAgendamientosPorFecha = async (req, res) => {
       Servicios: a.Agendamiento_Servicios?.map(s => ({
         Id_Servicios: s.Servicio?.Id_Servicios,
         Nombre: s.Servicio?.Nombre,
-        Precio: s.Precio, // el precio viene de Agendamiento_Servicios
+        Precio: s.Precio,
         Duracion: s.Servicio?.Duracion
       })) || []
     }));
 
     res.json({ status: "success", data: agendamientos });
   } catch (err) {
+    console.error('Error obtenerAgendamientosPorFecha:', err);
     res.status(500).json({ status: "error", message: err.message });
   }
 };
 
-
-
+/**
+ * Obtener agendamiento por ID
+ */
 exports.obtenerAgendamientosPorId = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const agendamiento = await Agendamientos.findByPk(id); // ✅ Variable corregida
+  try {
+    const { id } = req.params;
+    const agendamiento = await Agendamientos.findOne({
+      where: { Id_Agendamientos: id },
+      include: [
+        { model: Agendamiento_Servicios, as: 'Agendamiento_Servicios', include: [{ model: Servicios, as: 'Servicio' }] },
+        { model: Empleados, as: 'Id_Empleados_Empleado', attributes: ['Id_Empleados', 'Nombre'] },
+        { model: Clientes, as: 'Id_Cliente_Cliente', attributes: ['Id_Cliente', 'Nombre'] }
+      ]
+    });
 
-        if (!agendamiento) {
-            return res.status(404).json({ status: 'error', message: 'Agendamiento no encontrado' });
-        }
-
-        res.json({ status: 'success', data: agendamiento }); // ✅ 'agendamiento' no 'insumo'
-    } catch (err) {
-        res.status(500).json({ status: 'error', message: err.message });
+    if (!agendamiento) {
+      return res.status(404).json({ status: 'error', message: 'Agendamiento no encontrado' });
     }
-}
 
-exports.eliminarAgendamientos = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const agendamiento = await Agendamientos.findOne({ 
-            where: { Id_Agendamientos: id } // ✅ Parámetro corregido
-        });
+    const respuesta = {
+      Id_Agendamientos: agendamiento.Id_Agendamientos,
+      Id_Cliente: agendamiento.Id_Cliente,
+      Id_Empleados: agendamiento.Id_Empleados,
+      Fecha: agendamiento.Fecha,
+      Hora_Inicio: agendamiento.Hora_Inicio,
+      Hora_Fin: agendamiento.Hora_Fin,
+      Estado: agendamiento.Estado,
+      serviciosAgendados: (agendamiento.Agendamiento_Servicios || []).map(s => ({
+        Id_Servicios: s.Id_Servicios,
+        Precio: s.Precio,
+        Nombre: s.Servicio?.Nombre,
+        Duracion: s.Servicio?.Duracion
+      }))
+    };
 
-        if (!agendamiento) {
-            return res.status(404).json({ status: 'error', message: 'Agendamiento no encontrado' });
-        }
-
-        await agendamiento.destroy();
-        res.json({ status: 'success', message: 'Agendamiento eliminado' });
-    } catch (err) {
-        res.status(500).json({ status: 'error', message: err.message });
-    }
+    res.json({ status: 'success', data: respuesta });
+  } catch (err) {
+    console.error('Error obtenerAgendamientosPorId:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
 };
 
 /**
- * Endpoint público para crear agendamientos
- * Requiere token de autenticación pero no verificación de roles
+ * Actualizar agendamiento
+ */
+exports.actualizarAgendamientos = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    const {
+      Id_Cliente,
+      Id_Empleados,
+      Fecha,
+      Hora_Inicio,
+      serviciosAgendados, // optional
+      Estado
+    } = req.body;
+
+    console.log(`[PUT] intento actualizar Agendamiento id=${id}`);
+
+    const agendamiento = await Agendamientos.findOne({
+      where: { Id_Agendamientos: id },
+      transaction: t
+    });
+
+    if (!agendamiento) {
+      await t.rollback();
+      console.log(`[PUT] id=${id} no encontrado`);
+      return res.status(404).json({ status: 'error', message: 'Agendamiento no encontrado' });
+    }
+
+    // Servicios a usar
+    let serviciosDB = [];
+    if (Array.isArray(serviciosAgendados) && serviciosAgendados.length > 0) {
+      const idsServicios = serviciosAgendados.map(s => s.Id_Servicio || s.Id_Servicios);
+      serviciosDB = await Servicios.findAll({
+        where: { Id_Servicios: idsServicios },
+        transaction: t
+      });
+      if (serviciosDB.length !== idsServicios.length) {
+        await t.rollback();
+        return res.status(400).json({ status: 'error', message: 'Uno o más servicios no existen' });
+      }
+    } else {
+      const actuales = await Agendamiento_Servicios.findAll({
+        where: { Id_Agendamientos: id },
+        include: [{ model: Servicios, as: 'Servicio' }],
+        transaction: t
+      });
+      serviciosDB = actuales.map(a => a.Servicio).filter(Boolean);
+    }
+
+    // calcular duración y subtotal
+    let totalDuration = 0;
+    let subtotal = 0;
+    const itemsToInsert = serviciosDB.map(s => {
+      totalDuration += Number(s.Duracion || 0);
+      subtotal += Number(s.Precio || 0);
+      return { Id_Servicios: s.Id_Servicios, Precio: s.Precio };
+    });
+
+    if (!Fecha) {
+      await t.rollback();
+      return res.status(400).json({ status: 'error', message: 'Fecha es requerida' });
+    }
+    if (!Hora_Inicio) {
+      await t.rollback();
+      return res.status(400).json({ status: 'error', message: 'Hora_Inicio es requerida' });
+    }
+
+    const Hora_Fin = addMinutes(Fecha, Hora_Inicio, totalDuration);
+
+    const conflicto = await Agendamientos.findOne({
+      where: {
+        Id_Empleados: Id_Empleados ?? agendamiento.Id_Empleados,
+        Fecha,
+        Id_Agendamientos: { [Op.ne]: id },
+        [Op.and]: [
+          { Hora_Inicio: { [Op.lt]: Hora_Fin } },
+          { Hora_Fin: { [Op.gt]: Hora_Inicio } }
+        ]
+      },
+      transaction: t
+    });
+
+    if (conflicto) {
+      await t.rollback();
+      return res.status(409).json({
+        status: 'error',
+        message: 'Horario no disponible para ese empleado en la franja seleccionada',
+        conflict: {
+          Id_Agendamientos: conflicto.Id_Agendamientos,
+          Fecha: conflicto.Fecha,
+          Hora_Inicio: conflicto.Hora_Inicio,
+          Hora_Fin: conflicto.Hora_Fin
+        }
+      });
+    }
+
+    const novedad = await Novedades_Horarios.findOne({
+      where: {
+        Id_Empleados: Id_Empleados ?? agendamiento.Id_Empleados,
+        Fecha,
+        [Op.and]: [
+          { Hora_Inicio: { [Op.lt]: Hora_Fin } },
+          { Hora_Fin: { [Op.gt]: Hora_Inicio } }
+        ]
+      },
+      transaction: t
+    });
+
+    if (novedad) {
+      await t.rollback();
+      return res.status(409).json({
+        status: 'error',
+        message: `El empleado tiene una novedad en ese horario (${novedad.Motivo})`,
+      });
+    }
+
+    const camposActualizar = {
+      Fecha,
+      Hora_Inicio,
+      Hora_Fin,
+    };
+    if (typeof Id_Empleados !== 'undefined') camposActualizar.Id_Empleados = Id_Empleados;
+    if (typeof Id_Cliente !== 'undefined') camposActualizar.Id_Cliente = Id_Cliente;
+    if (typeof Estado !== 'undefined') camposActualizar.Estado = Estado;
+    if (typeof subtotal !== 'undefined') camposActualizar.Subtotal = subtotal;
+
+    await agendamiento.update(camposActualizar, { transaction: t });
+
+    // actualizar servicios vinculados
+    await Agendamiento_Servicios.destroy({ where: { Id_Agendamientos: id }, transaction: t });
+    if (itemsToInsert.length > 0) {
+      const entries = itemsToInsert.map(item => ({
+        Id_Agendamientos: id,
+        Id_Servicios: item.Id_Servicios,
+        Precio: item.Precio
+      }));
+      await Agendamiento_Servicios.bulkCreate(entries, { transaction: t });
+    }
+
+    await t.commit();
+
+    const updated = await Agendamientos.findOne({
+      where: { Id_Agendamientos: id },
+      include: [
+        { model: Agendamiento_Servicios, as: 'Agendamiento_Servicios', include: [{ model: Servicios, as: 'Servicio' }] },
+        { model: Empleados, as: 'Id_Empleados_Empleado', attributes: ['Id_Empleados','Nombre'] },
+        { model: Clientes, as: 'Id_Cliente_Cliente', attributes: ['Id_Cliente','Nombre'] }
+      ]
+    });
+
+    return res.json({ status: 'success', data: updated });
+  } catch (err) {
+    try { await t.rollback(); } catch(e){ /* ignore */ }
+    console.error(`[PUT] Error actualizando id=${req.params.id}:`, err);
+
+    if (err.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(409).json({ status: 'error', message: 'Restricción de FK al actualizar', error: err.message });
+    }
+
+    return res.status(500).json({
+      status: 'error',
+      message: 'Error actualizando agendamiento',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+};
+
+/**
+ * Eliminar agendamiento (con borrado de dependientes y manejo de FK)
+ */
+exports.eliminarAgendamientos = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    console.log(`[DELETE] intento eliminar Agendamiento id=${id}`);
+
+    const agendamiento = await Agendamientos.findOne({
+      where: { Id_Agendamientos: id },
+      transaction: t
+    });
+
+    if (!agendamiento) {
+      await t.rollback();
+      console.log(`[DELETE] id=${id} no encontrado`);
+      return res.status(404).json({ status: 'error', message: 'Agendamiento no encontrado' });
+    }
+
+    await Agendamiento_Servicios.destroy({
+      where: { Id_Agendamientos: id },
+      transaction: t
+    });
+
+    await agendamiento.destroy({ transaction: t });
+
+    await t.commit();
+    console.log(`[DELETE] id=${id} eliminado correctamente`);
+    return res.json({ status: 'success', message: 'Agendamiento eliminado' });
+  } catch (err) {
+    try { await t.rollback(); } catch (e) { /* ignore */ }
+    console.error(`[DELETE] Error eliminando id=${req.params.id}:`, err);
+
+    if (err.name === 'SequelizeForeignKeyConstraintError' || err.parent?.errno === 1451) {
+      return res.status(409).json({
+        status: 'error',
+        message: 'No se puede eliminar el agendamiento porque existen registros relacionados.',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
+    }
+
+    return res.status(500).json({
+      status: 'error',
+      message: 'Error eliminando agendamiento',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+};
+
+/**
+ * Endpoint público para crear agendamientos (usa token, pero es "público" en el sentido de cliente)
  */
 exports.crearAgendamientoPublico = async (req, res) => {
   const t = await sequelize.transaction();
@@ -258,13 +479,11 @@ exports.crearAgendamientoPublico = async (req, res) => {
     
     const { Id_Empleados, Fecha, Hora_Inicio, serviciosAgendados } = req.body;
 
-    // Obtener Id_Cliente del token de autenticación
     const Id_Cliente = req.user?.id;
     
     console.log('=== DEBUG: Id_Cliente obtenido del token ===');
     console.log('Id_Cliente del token:', Id_Cliente);
 
-    // Validaciones de datos requeridos
     const errors = {};
     
     if (!Id_Cliente) {
@@ -294,11 +513,6 @@ exports.crearAgendamientoPublico = async (req, res) => {
       });
     }
 
-    // El Id_Cliente ya se obtuvo del token, no necesitamos validación adicional
-    console.log('=== DEBUG: Id_Cliente validado desde token ===');
-    console.log('Id_Cliente a usar:', Id_Cliente);
-
-    // Buscar el cliente por documento (ya que el token contiene un Usuario, no un Cliente)
     console.log('=== DEBUG: Buscando cliente por documento ===');
     console.log('Documento del usuario:', req.user.documento);
     
@@ -316,11 +530,9 @@ exports.crearAgendamientoPublico = async (req, res) => {
       });
     }
     
-    // Usar el Id_Cliente real encontrado
     const Id_Cliente_Real = cliente.Id_Cliente;
     console.log('Cliente encontrado:', cliente.Nombre, 'ID:', Id_Cliente_Real);
 
-    // Validar que el empleado existe y está activo
     const empleado = await Empleados.findByPk(Id_Empleados, { 
       transaction: t,
       attributes: ['Id_Empleados', 'Nombre', 'Estado']
@@ -340,7 +552,6 @@ exports.crearAgendamientoPublico = async (req, res) => {
       });
     }
 
-    // Validar fecha (no puede ser anterior al día actual)
     const fechaActual = new Date().toISOString().split('T')[0];
     if (Fecha < fechaActual) {
       await t.rollback();
@@ -350,7 +561,6 @@ exports.crearAgendamientoPublico = async (req, res) => {
       });
     }
 
-    // Validar formato de hora
     const horaRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!horaRegex.test(Hora_Inicio)) {
       await t.rollback();
@@ -360,14 +570,7 @@ exports.crearAgendamientoPublico = async (req, res) => {
       });
     }
 
-    // Validar que los servicios existen y están activos
-    console.log('=== DEBUG: Validación de servicios ===');
-    console.log('serviciosAgendados recibidos:', serviciosAgendados);
-    
-    // Aceptar tanto Id_Servicio como Id_Servicios para compatibilidad
     const idsServicios = serviciosAgendados.map(s => s.Id_Servicio || s.Id_Servicios);
-    console.log('IDs de servicios extraídos:', idsServicios);
-    
     const serviciosDB = await Servicios.findAll({
       where: { 
         Id_Servicios: idsServicios,
@@ -375,8 +578,6 @@ exports.crearAgendamientoPublico = async (req, res) => {
       },
       transaction: t
     });
-    
-    console.log('Servicios encontrados en DB:', serviciosDB.length);
 
     if (serviciosDB.length !== idsServicios.length) {
       await t.rollback();
@@ -386,11 +587,6 @@ exports.crearAgendamientoPublico = async (req, res) => {
       });
     }
 
-    // Validar que los servicios están disponibles para el empleado
-    console.log('=== DEBUG: Validación de servicios del empleado ===');
-    console.log('Id_Empleados:', Id_Empleados);
-    console.log('idsServicios para validar:', idsServicios);
-    
     const serviciosEmpleado = await Empleado_Servicio.findAll({
       where: { 
         Id_Empleados: Id_Empleados,
@@ -398,12 +594,8 @@ exports.crearAgendamientoPublico = async (req, res) => {
       },
       transaction: t
     });
-    
-    console.log('Servicios del empleado encontrados:', serviciosEmpleado.length);
-    console.log('Servicios del empleado:', serviciosEmpleado.map(s => s.Id_Servicios));
 
     if (serviciosEmpleado.length !== idsServicios.length) {
-      console.log('=== ERROR: Servicios no disponibles para empleado ===');
       await t.rollback();
       return res.status(400).json({
         success: false,
@@ -411,7 +603,6 @@ exports.crearAgendamientoPublico = async (req, res) => {
       });
     }
 
-    // Calcular duración total y subtotal
     let totalDuration = 0;
     let subtotal = 0;
     const itemsToInsert = serviciosDB.map(s => {
@@ -424,11 +615,9 @@ exports.crearAgendamientoPublico = async (req, res) => {
       };
     });
 
-    // Calcular hora fin
     const Hora_Fin = addMinutes(Fecha, Hora_Inicio, totalDuration);
 
-    // Validar conflictos de horario con otros agendamientos
-    const conflicto = await Agendamientos.findOne({
+    const conflicto2 = await Agendamientos.findOne({
       where: {
         Id_Empleados,
         Fecha,
@@ -440,7 +629,7 @@ exports.crearAgendamientoPublico = async (req, res) => {
       transaction: t
     });
 
-    if (conflicto) {
+    if (conflicto2) {
       await t.rollback();
       return res.status(409).json({
         success: false,
@@ -449,8 +638,7 @@ exports.crearAgendamientoPublico = async (req, res) => {
       });
     }
 
-    // Validar conflictos con novedades del empleado
-    const novedad = await Novedades_Horarios.findOne({
+    const novedad2 = await Novedades_Horarios.findOne({
       where: {
         Id_Empleados,
         Fecha,
@@ -462,16 +650,15 @@ exports.crearAgendamientoPublico = async (req, res) => {
       transaction: t
     });
 
-    if (novedad) {
+    if (novedad2) {
       await t.rollback();
       return res.status(409).json({
         success: false,
         message: 'Conflicto de horario',
-        error: `El empleado tiene una novedad en ese horario (${novedad.Motivo})`
+        error: `El empleado tiene una novedad en ese horario (${novedad2.Motivo})`
       });
     }
 
-    // Crear agendamiento
     const nuevoAgendamiento = await Agendamientos.create({
       Id_Cliente: Id_Cliente_Real,
       Id_Empleados,
@@ -482,7 +669,6 @@ exports.crearAgendamientoPublico = async (req, res) => {
       Estado: 'Agendado'
     }, { transaction: t });
 
-    // Crear relaciones con servicios
     for (const item of itemsToInsert) {
       await Agendamiento_Servicios.create({
         Id_Agendamientos: nuevoAgendamiento.Id_Agendamientos,
@@ -493,7 +679,6 @@ exports.crearAgendamientoPublico = async (req, res) => {
 
     await t.commit();
 
-    // Respuesta exitosa
     const respuesta = {
       Id_Agendamiento: nuevoAgendamiento.Id_Agendamientos,
       Id_Cliente: Id_Cliente_Real,
