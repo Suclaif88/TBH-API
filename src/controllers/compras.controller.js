@@ -238,47 +238,125 @@ exports.obtenerCompras = async (req, res) => {
 exports.obtenerCompraPorId = async (req, res) => {
   try {
     const { id } = req.params;
-    const compra = await Compras.findByPk(id);
+
+    const compra = await Compras.findByPk(id, {
+      include: [
+        {
+          model: Proveedores,
+          as: "Id_Proveedores_Proveedore",
+          attributes: [
+            "Id_Proveedores",
+            "Tipo_Proveedor",
+            "NIT",
+            "Nombre_Empresa",
+            "Asesor",
+            "Celular_Empresa",
+            "Celular_Asesor",
+            "Tipo_Documento",
+            "Documento",
+            "Nombre",
+            "Celular",
+            "Email",
+            "Direccion",
+            "Estado"
+          ],
+        },
+        {
+          model: Detalle_Compra_Insumos,
+          as: "Detalle_Compra_Insumos",
+          attributes: ["Id_Detalle_Insumos", "Cantidad", "Precio_ml", "Subtotal"],
+          include: [
+            {
+              model: Insumos,
+              as: "Id_Insumos_Insumo",
+              attributes: ["Id_Insumos", "Nombre"],
+            },
+          ],
+        },
+        {
+          model: Detalle_Compra_Productos,
+          as: "Detalle_Compra_Productos",
+          attributes: ["Id_Detalle_Productos", "Cantidad", "Precio_Unitario", "Subtotal"],
+          include: [
+            {
+              model: Productos,
+              as: "Id_Productos_Producto",
+              attributes: ["Id_Productos", "Nombre"],
+            },
+          ],
+        },
+        {
+          model: Detalle_Compra_Tallas,
+          as: "Detalle_Compra_Tallas",
+          attributes: ["Id_Detalle_Compra_Tallas", "Cantidad"],
+          include: [
+            {
+              model: Productos,
+              as: "Id_Productos_Producto",
+              attributes: ["Id_Productos", "Nombre"],
+            },
+            {
+              model: Tallas,
+              as: "Id_Tallas_Talla",
+              attributes: ["Id_Tallas", "Nombre"],
+            },
+          ],
+        },
+      ],
+    });
 
     if (!compra) {
-      res.status(404).json({ status:'error', message: "Compra no encontrada." });
+      return res.status(404).json({ status: "error", message: "Compra no encontrada." });
     }
 
-    res.json({ status: 'success', data: compra });
+    // 🔹 Normalización de datos para el frontend
+    const data = {
+      Id_Compras: compra.Id_Compras,
+      Fecha: compra.Fecha,
+      Estado: compra.Estado,
+      Total: compra.Total,
+      Proveedor: compra.Id_Proveedores_Proveedore
+        ? {
+            Id_Proveedores: compra.Id_Proveedores_Proveedore.Id_Proveedores,
+            Nombre_Empresa: compra.Id_Proveedores_Proveedore.Nombre_Empresa,
+            Asesor: compra.Id_Proveedores_Proveedore.Asesor,
+            Email: compra.Id_Proveedores_Proveedore.Email,
+            Celular_Empresa: compra.Id_Proveedores_Proveedore.Celular_Empresa,
+            Celular_Asesor: compra.Id_Proveedores_Proveedore.Celular_Asesor,
+            Direccion: compra.Id_Proveedores_Proveedore.Direccion,
+          }
+        : null,
+      Insumos: compra.Detalle_Compra_Insumos.map((d) => ({
+        Id_Insumos: d.Id_Insumos_Insumo?.Id_Insumos,
+        Nombre: d.Id_Insumos_Insumo?.Nombre,
+        Cantidad: d.Cantidad,
+        Precio_ml: d.Precio_ml,
+        Subtotal: d.Subtotal,
+      })),
+      Productos: compra.Detalle_Compra_Productos.map((d) => ({
+        Id_Productos: d.Id_Productos_Producto?.Id_Productos,
+        Nombre: d.Id_Productos_Producto?.Nombre,
+        Cantidad: d.Cantidad,
+        Precio_Unitario: d.Precio_Unitario,
+        Subtotal: d.Subtotal,
+        // Relacionar tallas de este producto
+        Tallas: compra.Detalle_Compra_Tallas
+          .filter((t) => t.Id_Productos_Producto?.Id_Productos === d.Id_Productos_Producto?.Id_Productos)
+          .map((t) => ({
+            Id_Tallas: t.Id_Tallas_Talla?.Id_Tallas,
+            Talla: t.Id_Tallas_Talla?.Nombre,
+            Cantidad: t.Cantidad,
+          })),
+      })),
+    };
+
+    res.json({ status: "success", data });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error("Error en obtenerCompraPorId:", error);
+    res.status(500).json({ status: "error", message: error.message });
   }
 };
 
-  exports.obtenerCompraConDetalles = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-  const compra = await Compras.findByPk(id, {
-    include: [
-      { model: Detalle_Compra_Insumos, as: "Detalle_Compra_Insumos" },
-      { model: Detalle_Compra_Productos, as: "Detalle_Compra_Productos" },
-      { 
-        model: Detalle_Compra_Tallas, 
-        as: "Detalle_Compra_Tallas",
-        include: [
-          { model: Productos, as: "Id_Productos_Producto" },
-          { model: Tallas, as: "Id_Tallas_Talla" }
-        ]
-      }
-    ]
-  });
-
-      if (!compra) {
-        return res.status(404).json({ message: 'Compra no encontrada' });
-      }
-
-      res.json(compra);
-    } catch (error) {
-      console.error('Error al obtener detalles de la compra:', error);
-      res.status(500).json({ message: 'Error del servidor' });
-    }
-  };
 
 // Actualizar el estado de una compra (solo de 1 a 0)
 
