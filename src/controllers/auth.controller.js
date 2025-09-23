@@ -71,7 +71,7 @@ exports.login = async (req, res) => {
       res.cookie("token", response.data.token, {
         httpOnly: true,
         secure: isProduction, // true en producción, false en desarrollo
-        sameSite: 'None', // None para cross-origin requests
+        sameSite: 'Lax', // Cambiar a Lax para mejor compatibilidad
         maxAge: 60 * 60 * 1000, // 1 hora
         domain: isProduction ? undefined : undefined // Dejar que el navegador maneje el dominio
       });
