@@ -15,7 +15,7 @@ const authMiddleware = (req, res, next) => {
   console.log('Token encontrado:', token ? 'SÍ' : 'NO');
 
   if (!token) {
-    if (req.originalUrl === "/api/me") {
+    if (req.originalUrl.startsWith("/api/me")) {
       req.user = null;
       logger.info(`Acceso sin sesión a ${req.originalUrl}`);
       return next();
@@ -38,7 +38,7 @@ const authMiddleware = (req, res, next) => {
     logger.info(message);
     next();
   } catch (error) {
-    if (req.originalUrl === "/api/me") {
+    if (req.originalUrl.startsWith("/api/me")) {
       req.user = null;
       logger.info(`Token inválido/expirado en ${req.originalUrl}, respondiendo como visitante`);
       return next();
