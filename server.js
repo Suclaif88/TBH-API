@@ -33,15 +33,62 @@ const iniciarServidor = async () => {
 
     app.set('trust proxy', 1);
 
-    // Configuración de CORS más permisiva
+    // Configuración de CORS para producción
+    const allowedOrigins = process.env.ALLOWED_ORIGINS 
+      ? process.env.ALLOWED_ORIGINS.split(',')
+      : [
+          'https://tbh-opal.vercel.app',
+          'http://localhost:3000',
+          'http://localhost:5173',
+          'http://localhost:8080'
+        ];
+
     app.use(cors({
-      origin: true, // Permitir todos los orígenes
+      origin: function (origin, callback) {
+        // Permitir requests sin origin (como mobile apps o curl)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+          callback(null, true);
+        } else {
+          console.log('CORS bloqueado para origin:', origin);
+          callback(new Error('No permitido por CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'X-Requested-With'],
+      allowedHeaders: [
+        'Content-Type', 
+        'Authorization', 
+        'Cookie', 
+        'Set-Cookie', 
+        'X-Requested-With',
+        'Accept',
+        'Origin'
+      ],
       exposedHeaders: ['Set-Cookie'],
-      optionsSuccessStatus: 200 // Para compatibilidad con navegadores legacy
+      optionsSuccessStatus: 200,
+      preflightContinue: false
     }));
+
+    // Middleware adicional para CORS
+    app.use((req, res, next) => {
+      const origin = req.headers.origin;
+      if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+      }
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, Set-Cookie, X-Requested-With, Accept, Origin');
+      res.header('Access-Control-Expose-Headers', 'Set-Cookie');
+      
+      // Manejar preflight requests
+      if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+      }
+      next();
+    });
 
     app.use(limiter);
     app.use(express.json());
@@ -66,7 +113,19 @@ const iniciarServidor = async () => {
         version: APP_VERSION,
         author: AUTOR,
         jwt_secret_configured: !!process.env.JWT_SECRET,
-        database_connected: true
+        database_connected: true,
+        cors_origin: req.headers.origin,
+        allowed_origins: allowedOrigins
+      });
+    });
+
+    // Endpoint para probar CORS
+    app.get("/cors-test", (req, res) => {
+      res.status(200).json({
+        message: "CORS funcionando correctamente",
+        origin: req.headers.origin,
+        timestamp: new Date().toISOString(),
+        headers: req.headers
       });
     });
 
