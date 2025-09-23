@@ -79,7 +79,8 @@ exports.login = async (req, res) => {
       return res.status(200).json({
         status: 'success',
         message: 'Login exitoso',
-        usuario: response.data.usuario
+        usuario: response.data.usuario,
+        token: response.data.token // Devolver token en respuesta como respaldo
       });
     } else {
       return res.status(response.status || 500).json({

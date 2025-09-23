@@ -3,8 +3,11 @@ const jwt = require('jsonwebtoken');
 const logger = require('../../logger');
 
 const authMiddleware = (req, res, next) => {
-  // Buscar token en diferentes nombres de cookies (compatibilidad con Vercel)
-  const token = req.cookies?.token || req.cookies?._vercel_jwt || req.cookies?.jwt;
+  // Buscar token en cookies y headers (compatibilidad con diferentes configuraciones)
+  const token = req.cookies?.token || 
+                req.cookies?._vercel_jwt || 
+                req.cookies?.jwt ||
+                req.headers?.authorization?.replace('Bearer ', '');
 
   // Debug: Log de información de la request
   console.log(`Auth middleware - URL: ${req.originalUrl}, Method: ${req.method}, Origin: ${req.headers.origin}`);
