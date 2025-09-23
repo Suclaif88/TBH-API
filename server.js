@@ -33,60 +33,14 @@ const iniciarServidor = async () => {
 
     app.set('trust proxy', 1);
 
-    // Middleware CORS personalizado más agresivo
-    app.use((req, res, next) => {
-      const origin = req.headers.origin;
-      
-      // Permitir específicamente el dominio de Vercel y localhost para desarrollo
-      const allowedOrigins = [
-        'https://tbh-opal.vercel.app',
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'http://localhost:8080'
-      ];
-      
-      if (allowedOrigins.includes(origin) || !origin) {
-        res.header('Access-Control-Allow-Origin', origin || '*');
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, Set-Cookie, X-Requested-With, Accept, Origin');
-        res.header('Access-Control-Expose-Headers', 'Set-Cookie');
-        res.header('Access-Control-Max-Age', '86400');
-      }
-      
-      // Manejar preflight requests
-      if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-      }
-      
-      next();
-    });
-
-    // Configuración adicional de CORS con la librería cors
+    // Configuración de CORS más permisiva
     app.use(cors({
-      origin: function (origin, callback) {
-        const allowedOrigins = [
-          'https://tbh-opal.vercel.app',
-          'http://localhost:3000',
-          'http://localhost:5173',
-          'http://localhost:8080'
-        ];
-        
-        // Permitir requests sin origin (como mobile apps o curl)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.includes(origin)) {
-          return callback(null, true);
-        }
-        
-        return callback(new Error('No permitido por CORS'));
-      },
+      origin: true, // Permitir todos los orígenes
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'X-Requested-With', 'Accept', 'Origin'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'X-Requested-With'],
       exposedHeaders: ['Set-Cookie'],
-      optionsSuccessStatus: 200
+      optionsSuccessStatus: 200 // Para compatibilidad con navegadores legacy
     }));
 
     app.use(limiter);
@@ -112,23 +66,7 @@ const iniciarServidor = async () => {
         version: APP_VERSION,
         author: AUTOR,
         jwt_secret_configured: !!process.env.JWT_SECRET,
-        database_connected: true,
-        cors_origin: req.headers.origin
-      });
-    });
-
-    // Endpoint para probar CORS
-    app.get("/cors-test", (req, res) => {
-      res.status(200).json({
-        message: "CORS funcionando correctamente",
-        origin: req.headers.origin,
-        timestamp: new Date().toISOString(),
-        allowed_origins: [
-          'https://tbh-opal.vercel.app',
-          'http://localhost:3000',
-          'http://localhost:5173',
-          'http://localhost:8080'
-        ]
+        database_connected: true
       });
     });
 
