@@ -16,6 +16,23 @@ router.get('/test', (req, res) => {
   });
 });
 
+// Endpoint para probar configuración de cookies
+router.get('/cookie-test', (req, res) => {
+  // Configurar una cookie de prueba
+  res.cookie("test-cookie", "test-value", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None',
+    maxAge: 60 * 60 * 1000
+  });
+  
+  res.json({
+    message: 'Cookie de prueba configurada',
+    cookies_sent: req.cookies,
+    environment: process.env.NODE_ENV
+  });
+});
+
 router.get('/', authMiddleware, (req, res) => {
   console.log('Endpoint /me ejecutado - req.user:', req.user);
   
