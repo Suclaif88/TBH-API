@@ -20,8 +20,8 @@ router.use(autorizar('Usuarios'));
 
 
 router.get('/', listarUsuario);
-router.get('/id/:id', listarUsuarioPorId)
-router.get('/documento/:documento', listarUsuarioPorDocumento)
+router.get('/:id', listarUsuarioPorId)
+router.get('/:documento', listarUsuarioPorDocumento)
 router.get('/email/:email', buscarUsuarioPorEmail)
 router.post('/', crearUsuario);
 router.put('/:id', actualizarUsuario);

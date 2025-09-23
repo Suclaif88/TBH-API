@@ -49,6 +49,9 @@ router.get('/producto/:Id_Productos/configuracion-insumos', verificarConfiguraci
 // Ruta de diagnóstico específico para un tamaño
 router.get('/producto/:Id_Productos/tamano/:nombreTamano/diagnostico', diagnosticarInsumosTamaño);
 
+// Ruta de diagnóstico específico para un tamaño
+router.get('/producto/:Id_Productos/tamano/:nombreTamano/diagnostico', diagnosticarInsumosTamaño);
+
 // Rutas de reportes
 router.get('/reportes/diario', reporteVentasDiarias);
 router.get('/reportes/mensual', reporteVentasMensuales);
