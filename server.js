@@ -33,7 +33,7 @@ const iniciarServidor = async () => {
 
     app.set('trust proxy', 1);
 
-    // Configuración de CORS para producción
+    // Configuración de CORS más permisiva para producción
     const allowedOrigins = process.env.ALLOWED_ORIGINS 
       ? process.env.ALLOWED_ORIGINS.split(',')
       : [
@@ -43,17 +43,51 @@ const iniciarServidor = async () => {
           'http://localhost:8080'
         ];
 
+    // Middleware CORS personalizado más agresivo
+    app.use((req, res, next) => {
+      const origin = req.headers.origin;
+      
+      // Log para debugging
+      console.log('Request origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
+      
+      // Permitir todos los orígenes en desarrollo, específicos en producción
+      if (process.env.NODE_ENV === 'development' || allowedOrigins.includes(origin) || !origin) {
+        res.header('Access-Control-Allow-Origin', origin || '*');
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, Set-Cookie, X-Requested-With, Accept, Origin, X-HTTP-Method-Override');
+        res.header('Access-Control-Expose-Headers', 'Set-Cookie');
+        res.header('Access-Control-Max-Age', '86400'); // 24 horas
+      } else {
+        console.log('CORS bloqueado para origin:', origin);
+      }
+      
+      // Manejar preflight requests
+      if (req.method === 'OPTIONS') {
+        console.log('OPTIONS request recibida');
+        res.status(200).end();
+        return;
+      }
+      
+      next();
+    });
+
+    // Configuración adicional de CORS con la librería cors
     app.use(cors({
       origin: function (origin, callback) {
-        // Permitir requests sin origin (como mobile apps o curl)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.indexOf(origin) !== -1) {
-          callback(null, true);
-        } else {
-          console.log('CORS bloqueado para origin:', origin);
-          callback(new Error('No permitido por CORS'));
+        // En desarrollo, permitir todo
+        if (process.env.NODE_ENV === 'development') {
+          return callback(null, true);
         }
+        
+        // En producción, verificar orígenes permitidos
+        if (!origin || allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        console.log('CORS bloqueado por librería cors:', origin);
+        return callback(new Error('No permitido por CORS'));
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -64,31 +98,12 @@ const iniciarServidor = async () => {
         'Set-Cookie', 
         'X-Requested-With',
         'Accept',
-        'Origin'
+        'Origin',
+        'X-HTTP-Method-Override'
       ],
       exposedHeaders: ['Set-Cookie'],
-      optionsSuccessStatus: 200,
-      preflightContinue: false
+      optionsSuccessStatus: 200
     }));
-
-    // Middleware adicional para CORS
-    app.use((req, res, next) => {
-      const origin = req.headers.origin;
-      if (allowedOrigins.includes(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-      }
-      res.header('Access-Control-Allow-Credentials', 'true');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, Set-Cookie, X-Requested-With, Accept, Origin');
-      res.header('Access-Control-Expose-Headers', 'Set-Cookie');
-      
-      // Manejar preflight requests
-      if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-      }
-      next();
-    });
 
     app.use(limiter);
     app.use(express.json());
@@ -125,8 +140,22 @@ const iniciarServidor = async () => {
         message: "CORS funcionando correctamente",
         origin: req.headers.origin,
         timestamp: new Date().toISOString(),
-        headers: req.headers
+        allowed_origins: allowedOrigins,
+        node_env: process.env.NODE_ENV,
+        headers: {
+          origin: req.headers.origin,
+          'user-agent': req.headers['user-agent'],
+          'access-control-request-method': req.headers['access-control-request-method'],
+          'access-control-request-headers': req.headers['access-control-request-headers']
+        }
       });
+    });
+
+    // Endpoint OPTIONS específico para CORS
+    app.options("*", (req, res) => {
+      console.log('OPTIONS request para:', req.path);
+      console.log('Origin:', req.headers.origin);
+      res.status(200).end();
     });
 
     app.use("/api", routes);
