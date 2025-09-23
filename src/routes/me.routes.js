@@ -8,7 +8,11 @@ router.get('/test', (req, res) => {
   res.json({ 
     message: 'Endpoint de prueba funcionando',
     cookies: req.cookies,
-    headers: req.headers
+    headers: {
+      origin: req.headers.origin,
+      'user-agent': req.headers['user-agent'],
+      cookie: req.headers.cookie
+    }
   });
 });
 

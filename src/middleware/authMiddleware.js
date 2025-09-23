@@ -7,7 +7,9 @@ const authMiddleware = (req, res, next) => {
   const token = req.cookies?.token || req.cookies?._vercel_jwt || req.cookies?.jwt;
 
   // Debug: Log de información de la request
-  logger.info(`Auth middleware - URL: ${req.originalUrl}, Method: ${req.method}, Origin: ${req.headers.origin}, Cookies: ${JSON.stringify(req.cookies)}`);
+  console.log(`Auth middleware - URL: ${req.originalUrl}, Method: ${req.method}, Origin: ${req.headers.origin}`);
+  console.log('Cookies recibidas:', req.cookies);
+  console.log('Token encontrado:', token ? 'SÍ' : 'NO');
 
   if (!token) {
     if (req.originalUrl === "/api/me") {
