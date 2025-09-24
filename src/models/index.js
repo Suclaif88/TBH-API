@@ -139,7 +139,7 @@ function nini(sequelize) {
 
   Agendamiento_Servicios.belongsTo(Agendamientos, { as: "Agendamiento", foreignKey: "Id_Agendamientos" });
   Agendamientos.hasMany(Agendamiento_Servicios, { as: "Agendamiento_Servicios", foreignKey: "Id_Agendamientos" });
-  Ventas.belongsTo(Agendamientos, { as: "Id_Agendamientos_Agendamiento", foreignKey: "Id_Agendamientos"});
+  Ventas.belongsTo(Agendamientos, { as: "Agendamiento", foreignKey: "Id_Agendamientos"});
   Agendamientos.hasOne(Ventas, { as: "Ventum", foreignKey: "Id_Agendamientos"});
   Insumos.belongsTo(Categoria_Insumos, { as: "Id_Categoria_Insumos_Categoria_Insumo", foreignKey: "Id_Categoria_Insumos"});
   Categoria_Insumos.hasMany(Insumos, { as: "Insumos", foreignKey: "Id_Categoria_Insumos"});
