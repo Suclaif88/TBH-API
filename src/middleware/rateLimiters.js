@@ -3,7 +3,7 @@ const logger = require('../../logger');
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 20, // Aumentar límite para desarrollo
   handler: (req, res) => {
     const message = `Rate limit exceeded for IP: ${req.ip} on ${req.originalUrl}`;
     logger.warn(message);
