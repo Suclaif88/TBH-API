@@ -23,7 +23,7 @@
     "bcryptjs": "^3.0.2",
     "chalk": "^5.4.1",
     "cli-progress": "^3.12.0",
-    "cloudinary": "^2.6.0",
+    "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
